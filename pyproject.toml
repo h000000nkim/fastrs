@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "fastrs"
+version = "0.1.0"
+description = "FastText-based response similarity analyzer for human raters"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [{ name = "Hoon Kim", email = "h000000nkim@gmail.com" }]
+keywords = ["fasttext", "similarity", "nlp", "education", "rater", "korean", "jamo", "morphology"]
+
+dependencies = [
+  "gensim>=4.3",
+  "numpy>=1.23",
+  "typer>=0.12",
+  "jamo>=0.4.1",
+  "pecab>=1.0.8",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "ruff>=0.5",
+  "mkdocs-material>=9.5",
+  "mkdocstrings[python]>=0.25",
+  "mkdocs-minify-plugin>=0.7",
+  "mkdocs-git-revision-date-localized-plugin>=1.2",
+]
+
+[project.scripts]
+fastrs = "fastrs.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/h000000nkim/fastrs"
+Repository = "https://github.com/h000000nkim/fastrs"
+Documentation = "https://h000000nkim.github.io/fastrs/"
+
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "License :: OSI Approved :: MIT License",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/fastrs"]
+
+[tool.hatch.build.targets.sdist]
+include = ["src/fastrs", "README.md", "LICENSE", "pyproject.toml"]
