@@ -1,1 +1,3 @@
 import umap
+
+umap.UMAP()
