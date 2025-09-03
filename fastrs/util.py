@@ -3,6 +3,7 @@ import urllib.request
 import gzip
 import shutil
 from gensim.models import FastText
+from typing import Union, Literal
 
 
 __all__ = [
@@ -31,3 +32,19 @@ def get_pretrained_model(
             shutil.copyfileobj(f_in, f_out)
 
     return FastText.load(bin_path)
+
+
+def _typecheck():
+    pass
+
+
+def _literalcheck(
+        input: Union[str, list[str]],
+        literal: list[str],
+    ) -> None:
+    if isinstance(input, str):
+        input = [input]
+
+    for item in input:
+        if item not in literal:
+            raise ValueError(f"Invalid input: {item}. Expected one of: {literal}")
