@@ -1,3 +1,0 @@
-import umap
-
-umap.UMAP()

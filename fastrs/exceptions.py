@@ -13,3 +13,5 @@ class TrainingError(FastrsError):
 class UtilError(FastrsError):
     """Exception raised for errors related to utility functions."""
     pass
+
+
