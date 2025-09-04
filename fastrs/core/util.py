@@ -1,4 +1,5 @@
 import os
+import json
 import urllib.request
 import gzip
 import shutil
@@ -12,8 +13,53 @@ from .exceptions import PreprocessingError, TrainingError, UtilError
 
 
 __all__ = [
-    "get_pretrained_model"
+    "get_pretrained_model",
+    "load_config",
+    "load_color_schemes", 
+    "load_plot_config",
+    "load_reduction_defaults",
+    "load_fasttext_defaults"
 ]
+
+
+def load_config(config_name: str) -> dict:
+    """
+    _config 폴더에서 JSON 설정 파일 로드
+    
+    Args:
+        config_name: 설정 파일 이름 (확장자 제외)
+    
+    Returns:
+        dict: 설정 딕셔너리
+    """
+    config_path = os.path.join(os.path.dirname(__file__), '_config', f'{config_name}.json')
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except FileNotFoundError:
+        raise UtilError(f"설정 파일을 찾을 수 없습니다: {config_path}")
+    except json.JSONDecodeError as e:
+        raise UtilError(f"설정 파일을 파싱할 수 없습니다: {config_path}, 오류: {e}")
+
+
+def load_color_schemes() -> dict:
+    """색상 스키마 설정 로드"""
+    return load_config('color_schemes')
+
+
+def load_plot_config() -> dict:
+    """플롯 설정 로드"""
+    return load_config('plot_config')
+
+
+def load_reduction_defaults() -> dict:
+    """차원축소 알고리즘 기본값 설정 로드"""
+    return load_config('reduction_defaults')
+
+
+def load_fasttext_defaults() -> dict:
+    """FastText 모델 기본값 설정 로드"""
+    return load_config('fasttext_defaults')
 
 
 def get_pretrained_model(

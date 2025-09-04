@@ -70,6 +70,7 @@ class Preprocessor:
         if hasattr(self, 'result'):
             return self.result[index]
         raise IndexError(index)
+    
     def __repr__(self):
         if hasattr(self, 'result'):
             return repr(self.result)

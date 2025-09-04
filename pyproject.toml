@@ -11,33 +11,6 @@ requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "Hoon Kim", email = "h000000nkim@gmail.com" }]
 keywords = ["fasttext", "similarity", "nlp", "education", "rater", "korean", "jamo", "morphology"]
-
-dependencies = [
-  "gensim>=4.3",
-  "numpy>=1.23",
-  "typer>=0.12",
-  "jamo>=0.4.1",
-  "pecab>=1.0.8",
-]
-
-[project.optional-dependencies]
-dev = [
-  "pytest>=8",
-  "ruff>=0.5",
-  "mkdocs-material>=9.5",
-  "mkdocstrings[python]>=0.25",
-  "mkdocs-minify-plugin>=0.7",
-  "mkdocs-git-revision-date-localized-plugin>=1.2",
-]
-
-[project.scripts]
-fastrs = "fastrs.cli:app"
-
-[project.urls]
-Homepage = "https://github.com/h000000nkim/fastrs"
-Repository = "https://github.com/h000000nkim/fastrs"
-Documentation = "https://h000000nkim.github.io/fastrs/"
-
 classifiers = [
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
@@ -45,8 +18,59 @@ classifiers = [
   "License :: OSI Approved :: MIT License",
 ]
 
+dependencies = [
+  "gensim>=4.3",
+  "numpy>=1.23",
+  "pandas>=1.5",
+  "plotly>=5.0",
+  "scikit-learn>=1.0",
+  "umap-learn>=0.5",
+  "jamo>=0.4.1",
+  "pecab>=1.0.8",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8",
+  "pytest-cov>=4.0",
+  "pytest-mock>=3.10",
+  "ruff>=0.5",
+  "mkdocs-material>=9.5",
+  "mkdocstrings[python]>=0.25",
+  "mkdocs-minify-plugin>=0.7",
+  "mkdocs-git-revision-date-localized-plugin>=1.2",
+]
+
+[project.urls]
+Homepage = "https://github.com/h000000nkim/fastrs"
+Repository = "https://github.com/h000000nkim/fastrs"
+Documentation = "https://h000000nkim.github.io/fastrs/"
+
 [tool.hatch.build.targets.wheel]
-packages = ["src/fastrs"]
+packages = ["fastrs"]
+artifacts = ["fastrs/_config/*.json"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/fastrs", "README.md", "LICENSE", "pyproject.toml"]
+include = ["fastrs", "README.md", "LICENSE", "pyproject.toml", "tests", "MANIFEST.in"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+    "--strict-markers",
+    "--disable-warnings",
+    "--color=yes"
+]
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests"
+]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+    "ignore::PendingDeprecationWarning"
+]
