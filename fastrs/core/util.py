@@ -105,8 +105,6 @@ def _literalcheck(
         if item not in literal:
             raise ValueError(f"Invalid input: {item}. Expected one of: {literal}")
         
-
-
 def formatData(
         answer: np.ndarray,
         response: np.ndarray,
@@ -187,6 +185,10 @@ def validData(
         )
 
     return None
+
+def labelData():
+    pass
+
 
 def copysignature(from_func):
     def decorator(to_func):

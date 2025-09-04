@@ -1,6 +1,6 @@
 {
   "default": {
-    "vector_size": 300,
+    "vector_size": 1000,
     "window": 5,
     "min_count": 5,
     "workers": 4,

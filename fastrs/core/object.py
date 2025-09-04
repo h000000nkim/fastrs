@@ -120,8 +120,13 @@ class Fastrs:
             reducer = TSNE(n_components=2, **method_params)
         else:
             raise ValueError(f"Unknown method: {method}")
-        reduced_data = reducer.fit_transform(self.model.wv.vectors)
-        return pd.DataFrame(reduced_data, columns=["x", "y"])
+        reduced_vectors = reducer.fit_transform(self.model.wv.vectors)
+        tokens = list(self.model.wv.key_to_index.keys())
+        demension2_data = pd.DataFrame(reduced_vectors, columns=["x", "y"])
+        token_data = pd.DataFrame(tokens, columns=["token"])
+        result = pd.concat([demension2_data, token_data], axis=1)
+        result = result[["token", "x", "y"]]
+        return result
 
     def _create_embeddings_dataframe(self, reduced_data: pd.DataFrame) -> pd.DataFrame:
         """임베딩을 DataFrame으로 변환 (차원축소 데이터 활용)"""

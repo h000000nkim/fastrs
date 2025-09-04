@@ -23,8 +23,7 @@ def create_scatter_plot(
     Returns:
         plotly Figure 객체
     """
-    if isinstance(answers, str):
-        answers = [answers]
+    if isinstance(answers, str): answers = [answers]
     
     color_schemes = util.load_color_schemes()
     plot_config = util.load_plot_config()

@@ -15,14 +15,18 @@ class Preprocessor:
         information: Union[str, None] = None,
         option: Literal["automatic", "manual"] = "automatic",
     ) -> None:
+        r"""
+        preprocessor : Must add Manual option implementation
+        """
         self.answer = answers if isinstance(answers, list) else [answers]
         self.originalanswer = self.answer.copy()
         self.response = responses
         self.originalresponse = self.response.copy()
         self.information = information
         self.originalinformation = self.information
-        if option == "automatic": 
-            self.preprocess("all")
+        if option == "automatic": self.preprocess("all")
+        if option == "manual":
+            raise NotImplementedError("Manual option is not implemented yet.")
 
     def preprocess(self, target="all", **kwargs) -> None:
         """전체 전처리 파이프라인 실행"""
