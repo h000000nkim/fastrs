@@ -13,6 +13,14 @@ from .visualizer import visualize_embeddings
 
 class Fastrs:
 
+    @overload
+    def __init__(
+        self,
+        data: Dict[str, Dict[str, Union[str, list[str], None]]],
+        
+
+
+
     @util.copysignature(FastText.__init__)
     def __init__(
         self,

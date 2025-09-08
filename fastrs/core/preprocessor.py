@@ -28,19 +28,30 @@ class Preprocessor:
         if option == "manual":
             raise NotImplementedError("Manual option is not implemented yet.")
 
-    def preprocess(self, target="all", **kwargs) -> None:
+    def preprocess(
+        self, 
+        target="all", 
+        **kwargs
+    ) -> None:
         """전체 전처리 파이프라인 실행"""
         self.clean(target=target, **kwargs)
         self.tokenize(target=target)
         self.jamoize(target=target)
         self.format(information=bool(self.information))
 
-    def clean(self, target="all", **kwargs) -> None:
+    def clean(
+        self, 
+        target="all", 
+        **kwargs
+    ) -> None:
         """텍스트 클리닝"""
         targets = self._parse_target(target)
         self._apply_to_targets(targets, cleantxt, **kwargs)
 
-    def tokenize(self, target="all") -> None:
+    def tokenize(
+        self,
+        target="all"
+    ) -> None:
         """토크나이징"""
         targets = self._parse_target(target)
         self._apply_to_targets(targets, tokenizetxt)
@@ -51,8 +62,8 @@ class Preprocessor:
         self._apply_to_targets(targets, jamoizetxt)
 
     def format(
-            self,
-            information : bool = True,
+        self,
+        information: bool = True,
     ) -> None:
         self.result = _formattxt_sentences(
             answer=self.answer,
