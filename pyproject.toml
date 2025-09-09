@@ -20,7 +20,7 @@ classifiers = [
 
 dependencies = [
   "gensim>=4.3",
-  "numpy>=1.23",
+  "numpy>=1.23,<2.3",
   "pandas>=1.5",
   "plotly>=5.0",
   "scikit-learn>=1.0",

@@ -7,7 +7,7 @@ import inspect
 import numpy as np
 from gensim.models import FastText
 from gensim.models.fasttext import load_facebook_model
-from typing import Union, Literal
+from typing import Union, Literal, Any
 from .exceptions import PreprocessingError, TrainingError, UtilError
 
 
@@ -32,7 +32,7 @@ def load_config(config_name: str) -> dict:
     Returns:
         dict: 설정 딕셔너리
     """
-    config_path = os.path.join(os.path.dirname(__file__), '_config', f'{config_name}.json')
+    config_path = os.path.join(os.path.dirname(__file__), '..', '_config', f'{config_name}.json')
     try:
         with open(config_path, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -90,11 +90,32 @@ def get_pretrained_model(
     return load_facebook_model(bin_path)
 
 
-def _typecheck():
-    pass
+def typecheck(
+    input: Any | tuple[Any],
+    expected: type | list[type]
+) -> None:
+    if isinstance(input, tuple):
+        if isinstance(expected, list):
+            for each, exp in zip(input, expected):
+                if isinstance(each, exp): pass
+                else: raise TypeError(
+                    f"Type of input must be {exp}, but got {type(each)}"
+                )
+        else:
+            for each in input:
+                if isinstance(each, expected): pass
+                else: raise TypeError(
+                    f"Type of input must be {expected}, but got {type(each)}"
+                )
+    else:
+        if isinstance(input, expected): pass
+        else: raise TypeError(
+            f"Type of input must be {expected}, but got {type(input)}"
+        )
+    return None
 
 
-def _literalcheck(
+def literalcheck(
         input: Union[str, list[str]],
         literal: list[str],
     ) -> None:
@@ -185,14 +206,3 @@ def validData(
         )
 
     return None
-
-def labelData():
-    pass
-
-
-def copysignature(from_func):
-    def decorator(to_func):
-        to_func.__signature__ = inspect.signature(from_func)
-        to_func.__doc__ = from_func.__doc__
-        return to_func
-    return decorator

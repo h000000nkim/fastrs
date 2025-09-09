@@ -6,14 +6,14 @@ and interactive embedding visualization.
 """
 
 from .core.object import Fastrs
-from .core.preprocessor import Preprocessor
+from .core import preprocessor
 from .core.visualizer import visualize_embeddings
 from .core import util
 from .core import exceptions
 
 __all__ = [
     'Fastrs',
-    'Preprocessor',
+    'preprocessor',
     'visualize_embeddings', 
     'util',
     'exceptions'
