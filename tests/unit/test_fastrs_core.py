@@ -14,7 +14,7 @@ from gensim.models import FastText
 
 from fastrs.core.object import Fastrs, Item
 from fastrs.core.exceptions import FastrsError, TrainingError, ReducerError
-from tests.fixtures import load_sample_data, create_minimal_data
+from tests.fixtures import load_sample_data
 
 
 class TestFastrsInitialization:
@@ -217,22 +217,6 @@ class TestFastrsVisualization:
 
 
 # Fixtures specific to this test module
-@pytest.fixture
-def sample_data():
-    """Provide sample data for testing."""
-    return load_sample_data()
-
-
-@pytest.fixture
-def minimal_data():
-    """Provide minimal data for basic tests."""
-    return create_minimal_data()
-
-
-@pytest.fixture
-def fastrs_instance(sample_data):
-    """Provide a basic Fastrs instance."""
-    return Fastrs(data=sample_data)
 
 
 @pytest.fixture
@@ -246,13 +230,13 @@ def fastrs_with_feed(fastrs_instance):
 @pytest.fixture
 def trained_fastrs(fastrs_with_feed):
     """Provide a Fastrs instance with a trained model."""
-    # Mock the model and required attributes
     mock_model = Mock(spec=FastText)
-    mock_model.wv.vectors = np.random.rand(10, 100)
-    mock_model.wv.key_to_index = {f"word{i}": i for i in range(10)}
+    mock_model.wv = Mock()
+    mock_model.wv.vectors = np.random.rand(50, 100)  # 50 > 30 for t-SNE perplexity
+    mock_model.wv.key_to_index = {f"word{i}": i for i in range(50)}
     
     fastrs_with_feed.model = mock_model
-    fastrs_with_feed.jamodict = {f"word{i}": f"response{i}" for i in range(10)}
+    fastrs_with_feed.jamodict = {f"word{i}": f"response{i}" for i in range(50)}
     
     return fastrs_with_feed
 

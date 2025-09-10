@@ -1,155 +1,464 @@
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
-from typing import Union, List, Dict, Optional, Literal
+from typing import Union, List, Optional, Literal
 from . import util
 
 
-def create_scatter_plot(
-    df: pd.DataFrame,
-    answers: Union[str, List[str]],
-    color_scheme: Literal["default", "colorblind_friendly"] = "default",
-    title: Optional[str] = None
+def scatter(
+        df: pd.DataFrame,
+        answers: Union[str, List[str]],
+        title: Union[str, None] = None,
+        theme: Literal["default", "colorblind_friendly"] = "default",
+        scatter_type: str = "simple",
+        show: bool = False,
 ) -> go.Figure:
     """
-    DataFrame으로부터 산점도 생성
+    Unified scatter function - wraps various scatter types
     
     Args:
-        df: 시각화할 데이터프레임 (x, y, token, label, answer_vis, token_vis 컬럼 필요)
-        answers: 시각화할 정답들
-        color_scheme: 색상 스키마 ("default", "colorblind_friendly")
-        title: 그래프 제목
-    
-    Returns:
-        plotly Figure 객체
+        df: DataFrame to visualize
+        answers: Answer strings to highlight
+        title: Plot title
+        theme: Color theme
+        scatter_type: "simple", "valuecount", "labeled", "combined"
     """
-    if isinstance(answers, str): answers = [answers]
+    # Handle edge cases
+    if answers is None:
+        raise ValueError("Answers cannot be None")
     
+    if isinstance(answers, str):
+        answers = [answers]
+    
+    if len(answers) == 0:
+        raise ValueError("Answers list cannot be empty")
+    
+    # Call corresponding scatter function
+    if scatter_type == "simple":
+        fig = _simple_scatter(df, answers, title, theme)
+    elif scatter_type == "valuecount":
+        fig = _valuecount_scatter(df, answers, title, theme)
+    elif scatter_type == "labeled":
+        fig = _labeled_scatter(df, answers, title, theme)
+    elif scatter_type == "combined":
+        fig = _combined_scatter(df, answers, title, theme)
+    else:
+        raise ValueError(f"Unknown scatter_type: {scatter_type}")
+    
+    if show:
+        fig.show()
+    
+    return fig
+
+
+# ================================
+# Individual scatter actions
+# ================================
+
+def _simple_scatter(
+        df: pd.DataFrame,
+        answers: List[str],
+        title: Union[str, None] = None,
+        theme: str = "default",
+) -> go.Figure:
+    """
+    Basic 2D scatterplot
+    Required columns: ["response", "token", "x", "y"]
+    """
+    # Load configurations
     color_schemes = util.load_color_schemes()
+    colors = color_schemes[theme]
     plot_config = util.load_plot_config()
     
-    colors = color_schemes[color_scheme]
+    # Copy data and transform coordinates
+    df_viz = df.copy()
+    
+    # Move first answer to origin (0,0)
+    first_answer = answers[0]
+    origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
+    
+    if origin_point is not None:
+        df_viz["x"] = df_viz["x"] - origin_point["x"]
+        df_viz["y"] = df_viz["y"] - origin_point["y"]
+    
+    # Separate answers and non-answers
+    answer_mask = df_viz["response"].isin(answers)
+    answers_df = df_viz[answer_mask]
+    non_answers_df = df_viz[~answer_mask]
     
     fig = go.Figure()
     
-    # 레이블별로 점들 그리기
-    draw_order = ["0", "1", "2"]
-    for lab in draw_order:
-        sub = df[df["label"] == lab]
-        if sub.empty:
-            continue
-            
-        opacity = plot_config["marker_opacity"]["faded"] if lab == "0" else plot_config["marker_opacity"]["normal"]
-        
-        fig.add_trace(go.Scattergl(
-            x=sub["x"], y=sub["y"],
+    # Non-answer points (fixed light gray)
+    if not non_answers_df.empty:
+        fig.add_trace(go.Scatter(
+            x=non_answers_df["x"],
+            y=non_answers_df["y"],
             mode="markers",
-            name=f"label={lab}",
+            name="responses",
             marker=dict(
                 size=plot_config["marker_size"],
-                color=colors["label_colors"][lab],
-                opacity=opacity
+                color="lightgray",
+                opacity=plot_config["marker_opacity"]["faded"]
             ),
             customdata=np.stack([
-                sub["answer_vis"].values, 
-                sub["token_vis"].values, 
-                sub["label"].values
+                non_answers_df["response"].values,
+                non_answers_df["token"].values,
             ], axis=-1),
-            hovertemplate="<b>answer: %{customdata[0]}</b><br>token: %{customdata[1]}<br>label: %{customdata[2]}<extra></extra>"
+            hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<extra></extra>"
         ))
     
-    # 격자선 추가
-    grid_config = plot_config["grid_lines"]
-    fig.add_hline(y=0, line_dash=grid_config["dash"], line_color=grid_config["color"], opacity=grid_config["opacity"])
-    fig.add_vline(x=0, line_dash=grid_config["dash"], line_color=grid_config["color"], opacity=grid_config["opacity"])
+    # Answer points (showing response values)
+    if not answers_df.empty:
+        fig.add_trace(go.Scatter(
+            x=answers_df["x"],
+            y=answers_df["y"],
+            mode="markers+text",
+            name="answers",
+            text=answers_df["response"],
+            textposition="middle center",
+            marker=dict(
+                size=plot_config["marker_size"] * 1.5,
+                color=colors["label_colors"]["1"],
+                opacity=plot_config["marker_opacity"]["normal"]
+            ),
+            textfont=dict(
+                size=12,
+                color="white"
+            ),
+            hovertemplate="<b>Answer: %{text}</b><extra></extra>"
+        ))
     
-    # 정답 마커와 주석 추가
-    marker_config = colors["answer_marker"]
-    annotation_config = colors["annotation"]
-    
-    for original_ans in answers:
-        answer_rows = df[df["answer"] == original_ans]
-        if not answer_rows.empty:
-            row = answer_rows.iloc[0]
-            
-            # 마커 추가
-            fig.add_trace(go.Scatter(
-                x=[row["x"]], y=[row["y"]],
-                mode="markers",
-                marker=dict(
-                    size=marker_config["size"],
-                    symbol=marker_config["symbol"],
-                    color=marker_config["color"],
-                    line=dict(width=1)
-                ),
-                name=f"정답: {original_ans}",
-                hovertemplate=f"<b>정답</b>: {original_ans}<extra></extra>"
-            ))
-            
-            # 주석 추가
-            fig.add_annotation(
-                x=row["x"], y=row["y"],
-                text=original_ans,
-                showarrow=True, 
-                arrowhead=2, 
-                ax=28, ay=-28,
-                bgcolor=annotation_config["bgcolor"],
-                bordercolor=annotation_config["bordercolor"],
-                font=dict(
-                    color=annotation_config["font_color"],
-                    size=annotation_config["font_size"]
-                )
-            )
-    
-    # 레이아웃 설정
+    # Layout configuration
     if title is None:
-        title = f"임베딩 시각화 - {', '.join(answers)}"
+        title = f"Embedding Visualization - {', '.join(answers)}"
     
     fig.update_layout(
         title=title,
-        legend_title_text="레이블",
-        xaxis_title=None,
-        yaxis_title=None,
+        xaxis_title="X",
+        yaxis_title="Y",
         template=plot_config["template"],
         width=plot_config["width"],
         height=plot_config["height"],
         yaxis=dict(scaleanchor="x", scaleratio=1),
-        legend_traceorder="normal"
+        showlegend=True
     )
     
     return fig
 
 
-def visualize_embeddings(
-    df: pd.DataFrame,
-    answers: Union[str, List[str]],
-    color_scheme: Literal["default", "colorblind_friendly"] = "default",
-    title: Optional[str] = None,
-    show: bool = True
+def _valuecount_scatter(
+        df: pd.DataFrame,
+        answers: List[str],
+        title: Union[str, None] = None,
+        theme: str = "default",
 ) -> go.Figure:
     """
-    임베딩 시각화 메인 함수
-    
-    Args:
-        df: 시각화할 데이터프레임 (x, y, token, label, answer_vis, token_vis, answer 컬럼 필요)
-        answers: 시각화할 정답들 
-        color_scheme: 색상 스키마 ("default", "colorblind_friendly")
-        title: 그래프 제목
-        show: 그래프 표시 여부
-    
-    Returns:
-        plotly Figure 객체
+    3D scatter plot with count information
+    Required columns: ["response", "token", "x", "y", "count"]
     """
-    # 필수 컬럼 확인
-    required_cols = ["x", "y", "token", "label", "answer_vis", "token_vis", "answer"]
-    missing_cols = [col for col in required_cols if col not in df.columns]
-    if missing_cols:
-        raise ValueError(f"DataFrame에 필수 컬럼이 없습니다: {missing_cols}")
+    # Load configurations
+    color_schemes = util.load_color_schemes()
+    colors = color_schemes[theme]
+    plot_config = util.load_plot_config()
     
-    # 시각화
-    fig = create_scatter_plot(df, answers, color_scheme, title)
+    # Copy data and transform coordinates
+    df_viz = df.copy()
     
-    if show:
-        fig.show()
+    # Move first answer to origin (0,0,count)
+    first_answer = answers[0]
+    origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
+    
+    if origin_point is not None:
+        df_viz["x"] = df_viz["x"] - origin_point["x"]
+        df_viz["y"] = df_viz["y"] - origin_point["y"]
+        # Don't transform z-axis (count)
+    
+    # Separate answers and non-answers
+    answer_mask = df_viz["response"].isin(answers)
+    answers_df = df_viz[answer_mask]
+    non_answers_df = df_viz[~answer_mask]
+    
+    fig = go.Figure()
+    
+    # Non-answer 3D points (fixed light gray)
+    if not non_answers_df.empty:
+        fig.add_trace(go.Scatter3d(
+            x=non_answers_df["x"],
+            y=non_answers_df["y"],
+            z=non_answers_df["count"],
+            mode="markers",
+            name="responses",
+            marker=dict(
+                size=plot_config["marker_size"],
+                color="lightgray",
+                opacity=plot_config["marker_opacity"]["faded"]
+            ),
+            customdata=np.stack([
+                non_answers_df["response"].values,
+                non_answers_df["token"].values,
+                non_answers_df["count"].values,
+            ], axis=-1),
+            hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<br>count: %{customdata[2]}<extra></extra>"
+        ))
+    
+    # Answer 3D points (showing response values)
+    if not answers_df.empty:
+        fig.add_trace(go.Scatter3d(
+            x=answers_df["x"],
+            y=answers_df["y"],
+            z=answers_df["count"],
+            mode="markers+text",
+            name="answers",
+            text=answers_df["response"],
+            textposition="middle center",
+            marker=dict(
+                size=plot_config["marker_size"] * 1.5,
+                color=colors["label_colors"]["1"],
+                opacity=plot_config["marker_opacity"]["normal"]
+            ),
+            textfont=dict(
+                size=12,
+                color="white"
+            ),
+            hovertemplate="<b>Answer: %{text}</b><br>count: %{z}<extra></extra>"
+        ))
+    
+    # Layout configuration
+    if title is None:
+        title = f"Embedding Visualization (Count) - {', '.join(answers)}"
+    
+    fig.update_layout(
+        title=title,
+        scene=dict(
+            xaxis_title="X",
+            yaxis_title="Y",
+            zaxis_title="Count"
+        ),
+        width=plot_config["width"],
+        height=plot_config["height"],
+        showlegend=True
+    )
+    
+    return fig
+
+
+def _labeled_scatter(
+        df: pd.DataFrame,
+        answers: List[str],
+        title: Union[str, None] = None,
+        theme: str = "default",
+) -> go.Figure:
+    """
+    Scatterplot with different colors by label
+    Required columns: ["response", "token", "x", "y", "label"]
+    """
+    # Load configurations
+    color_schemes = util.load_color_schemes()
+    colors = color_schemes[theme]
+    plot_config = util.load_plot_config()
+    
+    # Copy data and transform coordinates
+    df_viz = df.copy()
+    
+    # Move first answer to origin (0,0)
+    first_answer = answers[0]
+    origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
+    
+    if origin_point is not None:
+        df_viz["x"] = df_viz["x"] - origin_point["x"]
+        df_viz["y"] = df_viz["y"] - origin_point["y"]
+    
+    fig = go.Figure()
+    
+    # Display with different colors for each label
+    unique_labels = df_viz["label"].unique()
+    answer_mask = df_viz["response"].isin(answers)
+    
+    # Color mapping (use available colors from label_colors)
+    available_colors = list(colors["label_colors"].keys())
+    
+    for i, label in enumerate(unique_labels):
+        label_data = df_viz[df_viz["label"] == label]
+        
+        # Separate answer data from non-answer data
+        label_answers = label_data[label_data["response"].isin(answers)]
+        label_non_answers = label_data[~label_data["response"].isin(answers)]
+        
+        # Color selection (cycle if not enough colors available)
+        color_key = available_colors[i % len(available_colors)]
+        color = colors["label_colors"][color_key]
+        
+        # Non-answer points
+        if not label_non_answers.empty:
+            fig.add_trace(go.Scatter(
+                x=label_non_answers["x"],
+                y=label_non_answers["y"],
+                mode="markers",
+                name=f"label {label}",
+                marker=dict(
+                    size=plot_config["marker_size"],
+                    color=color,
+                    opacity=plot_config["marker_opacity"]["faded"]
+                ),
+                customdata=np.stack([
+                    label_non_answers["response"].values,
+                    label_non_answers["token"].values,
+                    label_non_answers["label"].values,
+                ], axis=-1),
+                hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<br>label: %{customdata[2]}<extra></extra>"
+            ))
+        
+        # Answer points (showing response values)
+        if not label_answers.empty:
+            fig.add_trace(go.Scatter(
+                x=label_answers["x"],
+                y=label_answers["y"],
+                mode="markers+text",
+                name=f"Answer label {label}",
+                text=label_answers["response"],
+                textposition="middle center",
+                marker=dict(
+                    size=plot_config["marker_size"] * 1.5,
+                    color=color,
+                    opacity=plot_config["marker_opacity"]["normal"]
+                ),
+                textfont=dict(
+                    size=12,
+                    color="white"
+                ),
+                hovertemplate="<b>Answer: %{text}</b><br>label: %{customdata[2]}<extra></extra>",
+                customdata=np.stack([
+                    label_answers["response"].values,
+                    label_answers["token"].values,
+                    label_answers["label"].values,
+                ], axis=-1)
+            ))
+    
+    # Layout configuration
+    if title is None:
+        title = f"Embedding Visualization (Labeled) - {', '.join(answers)}"
+    
+    fig.update_layout(
+        title=title,
+        xaxis_title="X",
+        yaxis_title="Y",
+        template=plot_config["template"],
+        width=plot_config["width"],
+        height=plot_config["height"],
+        yaxis=dict(scaleanchor="x", scaleratio=1),
+        showlegend=True
+    )
+    
+    return fig
+
+
+def _combined_scatter(
+        df: pd.DataFrame,
+        answers: List[str],
+        title: Union[str, None] = None,
+        theme: str = "default",
+) -> go.Figure:
+    """
+    Combined visualization of valuecount_scatter and labeled_scatter
+    Required columns: ["response", "token", "x", "y", "count", "label"]
+    """
+    # Load configurations
+    color_schemes = util.load_color_schemes()
+    colors = color_schemes[theme]
+    plot_config = util.load_plot_config()
+    
+    # Copy data and transform coordinates
+    df_viz = df.copy()
+    
+    # Move first answer to origin
+    first_answer = answers[0]
+    origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
+    
+    if origin_point is not None:
+        df_viz["x"] = df_viz["x"] - origin_point["x"]
+        df_viz["y"] = df_viz["y"] - origin_point["y"]
+    
+    fig = go.Figure()
+    
+    # 3D visualization with different colors by label
+    unique_labels = df_viz["label"].unique()
+    available_colors = list(colors["label_colors"].keys())
+    
+    for i, label in enumerate(unique_labels):
+        label_data = df_viz[df_viz["label"] == label]
+        
+        # Separate answer data from non-answer data
+        label_answers = label_data[label_data["response"].isin(answers)]
+        label_non_answers = label_data[~label_data["response"].isin(answers)]
+        
+        # Color selection
+        color_key = available_colors[i % len(available_colors)]
+        color = colors["label_colors"][color_key]
+        
+        # Non-answer 3D points
+        if not label_non_answers.empty:
+            fig.add_trace(go.Scatter3d(
+                x=label_non_answers["x"],
+                y=label_non_answers["y"],
+                z=label_non_answers["count"],
+                mode="markers",
+                name=f"label {label}",
+                marker=dict(
+                    size=plot_config["marker_size"],
+                    color=color,
+                    opacity=plot_config["marker_opacity"]["faded"]
+                ),
+                customdata=np.stack([
+                    label_non_answers["response"].values,
+                    label_non_answers["token"].values,
+                    label_non_answers["label"].values,
+                    label_non_answers["count"].values,
+                ], axis=-1),
+                hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<br>label: %{customdata[2]}<br>count: %{customdata[3]}<extra></extra>"
+            ))
+        
+        # Answer 3D points (showing response values)
+        if not label_answers.empty:
+            fig.add_trace(go.Scatter3d(
+                x=label_answers["x"],
+                y=label_answers["y"],
+                z=label_answers["count"],
+                mode="markers+text",
+                name=f"Answer label {label}",
+                text=label_answers["response"],
+                textposition="middle center",
+                marker=dict(
+                    size=plot_config["marker_size"] * 1.5,
+                    color=color,
+                    opacity=plot_config["marker_opacity"]["normal"]
+                ),
+                textfont=dict(
+                    size=12,
+                    color="white"
+                ),
+                hovertemplate="<b>Answer: %{text}</b><br>label: %{customdata[2]}<br>count: %{customdata[3]}<extra></extra>",
+                customdata=np.stack([
+                    label_answers["response"].values,
+                    label_answers["token"].values,
+                    label_answers["label"].values,
+                    label_answers["count"].values,
+                ], axis=-1)
+            ))
+    
+    # Layout configuration
+    if title is None:
+        title = f"Embedding Visualization (Combined) - {', '.join(answers)}"
+    
+    fig.update_layout(
+        title=title,
+        scene=dict(
+            xaxis_title="X",
+            yaxis_title="Y",
+            zaxis_title="Count"
+        ),
+        width=plot_config["width"],
+        height=plot_config["height"],
+        showlegend=True
+    )
     
     return fig

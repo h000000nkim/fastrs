@@ -185,11 +185,6 @@ def validData(
         )
 
         #length check
-        if (len(data[itemkey]["answer"]) ==
-            len(data[itemkey]["response"])
-        ): pass
-        else: raise UtilError(
-            f"Length of answer and response must be the same. But for item `{itemkey}` answer: {len(data[itemkey]['answer'])}, response: {len(data[itemkey]['response'])}")
         if len(data[itemkey]["answer"]) > 0: pass
         else: raise UtilError(
             f"Length of answer must be greater than 0. But for item `{itemkey}`: {len(data[itemkey]['answer'])}"

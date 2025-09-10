@@ -1,5 +1,6 @@
 import os
 import jamo
+import hdbscan
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
@@ -11,7 +12,7 @@ from sklearn.manifold import TSNE
 from . import util
 from . import preprocessor
 from .exceptions import FastrsError, TrainingError, ReducerError, ItemError
-from .visualizer import visualize_embeddings
+from .visualizer import scatter
 
 
 class Fastrs:
@@ -141,7 +142,7 @@ class Fastrs:
         *,
         n_neighbors: int = 15,
         min_dist: float = 0.1,
-        metric: str = "euclidean",
+        metric: str = "cosine",
         random_state: Optional[int] = None,
         n_components: int = 2,
         n_epochs: Optional[int] = None,
@@ -184,12 +185,13 @@ class Fastrs:
         method: Literal["pca", "tsne", "umap"] = "umap",
         **method_params: Any,
     ) -> pd.DataFrame:
+        method_params["n_components"] = 2 if "n_components" not in method_params else method_params["n_components"]
         if method == "umap":
-            reducer = UMAP(n_components=2, **method_params)
+            reducer = UMAP(**method_params)
         elif method == "pca":
-            reducer = PCA(n_components=2, **method_params)
+            reducer = PCA(**method_params)
         elif method == "tsne":
-            reducer = TSNE(n_components=2, **method_params)
+            reducer = TSNE(**method_params)
         else:
             raise ValueError(f"Unknown method: {method}")
         reduced_vectors = reducer.fit_transform(self.model.wv.vectors)
@@ -201,7 +203,7 @@ class Fastrs:
         if result["response"].isna().any(): 
             raise ReducerError(
                 f"Some tokens could not be mapped back to responses. {result[result['response'].isna()]['token'].tolist()}")
-        result = result[["response", "token", "x", "y"]]
+        result = result[["response", "token", "x", "y", "count"]]
         self.coordinates = result
         for item in self.items:
             item.coordinates = (
@@ -210,6 +212,17 @@ class Fastrs:
                 .reset_index(drop=True)
             )
         return result
+
+    def hdbscanize(
+        self,
+    ) -> None:
+        if not hasattr(self, 'coordinates'):
+            raise FastrsError("No reduced coordinates found. Please run reduce() before clustering.")
+        labeled = []
+        for item in self.items:
+            item.hdbscanize()
+            labeled.append(item.labels)
+        self.labels = labeled
 
     def visualize(
         self
@@ -422,18 +435,41 @@ class Item:
         self.feed = preprocessor.formatize(iterables=iterable, anchor=anchor, combine=combine)
         return self.feed
     
+    def countize(
+        self
+    ) -> pd.DataFrame:
+        """
+        """
+        all_texts = self.original_answer + self.original_response
+        self.coordinates["count"] = self.coordinates["response"].apply(lambda x: all_texts.count(x))
+        return self.coordinates
+
+    def hdbscanize(
+        self,
+        **hdbscan_params: Dict[str, Any]
+    ) -> pd.DataFrame:
+        data = self.coordinates[["x", "y"]].values
+        self.labels = self.coordinates
+        clusterer = hdbscan.HDBSCAN(
+            min_cluster_size= len(self.original_answer) * 2 if hdbscan_params.get("min_cluster_size") is None else hdbscan_params.get("min_cluster_size"),
+            **hdbscan_params
+        )
+        labels = clusterer.fit_predict(data)
+        self.labels["label"] = labels
+        return self.labels
+
     def visualize(
         self
     )-> go.Figure:
         """
         """
-        if not hasattr(self, 'coordinates'):
+        if not (hasattr(self, 'coordinates') or hasattr(self, 'labels')):
             raise ItemError("No coordinates found. Please run reduce() before visualize().")
-        self.plot = visualize_embeddings(
-            self.coordinates,
+        self.plot = scatter(
+            self.coordinates if not hasattr(self, 'labels') else self.labels,
             answers=self.original_answer,
             title=self.name,
-            show=False
+            scatter_type="simple"
         )
         return self.plot
 
@@ -441,10 +477,20 @@ class Item:
         target = [target] if isinstance(target, str) else target
         results = {}
         if "all" in target or "answer" in target:
-            results["answer"] = [func(s, **kwargs) for s in self.answer]
+            # Handle nested list structure for tokenized data
+            if all(isinstance(item, list) for item in self.answer):
+                # Flatten and apply function to each token
+                results["answer"] = [func(token, **kwargs) for sublist in self.answer for token in sublist]
+            else:
+                results["answer"] = [func(s, **kwargs) for s in self.answer]
         else: results["answer"] = self.answer
         if "all" in target or "response" in target:
-            results["response"] = [func(s, **kwargs) for s in self.response]
+            # Handle nested list structure for tokenized data
+            if all(isinstance(item, list) for item in self.response):
+                # Flatten and apply function to each token
+                results["response"] = [func(token, **kwargs) for sublist in self.response for token in sublist]
+            else:
+                results["response"] = [func(s, **kwargs) for s in self.response]
         else: results["response"] = self.response
         if "all" in target or "information" in target and self.information is not None:
             results["information"] = func(self.information, **kwargs)

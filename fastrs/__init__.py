@@ -7,14 +7,14 @@ and interactive embedding visualization.
 
 from .core.object import Fastrs
 from .core import preprocessor
-from .core.visualizer import visualize_embeddings
+from .core.visualizer import scatter
 from .core import util
 from .core import exceptions
 
 __all__ = [
     'Fastrs',
     'preprocessor',
-    'visualize_embeddings', 
+    'scatter', 
     'util',
     'exceptions'
 ]

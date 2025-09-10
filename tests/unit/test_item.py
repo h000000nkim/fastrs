@@ -212,15 +212,6 @@ class TestItemPrivateMethods:
 
 
 # Fixtures specific to this test module
-@pytest.fixture
-def sample_item():
-    """Provide a sample Item instance."""
-    return Item(
-        name="문학_현대시",
-        answer=["허무", "허무"],
-        response=["허무", "공허", "무상"],
-        information="박목월의 시 「나그네」에 대한 문제입니다."
-    )
 
 
 @pytest.fixture

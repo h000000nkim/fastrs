@@ -11,11 +11,11 @@ import numpy as np
 from unittest.mock import Mock, patch, MagicMock
 import plotly.graph_objects as go
 
-from fastrs.core.visualizer import visualize_embeddings
+from fastrs.core.visualizer import scatter
 
 
-class TestVisualizeEmbeddings:
-    """Test the visualize_embeddings function."""
+class TestScatter:
+    """Test the scatter function."""
     
     def test_visualize_embeddings_basic(self):
         """Test basic embedding visualization functionality."""
@@ -29,7 +29,7 @@ class TestVisualizeEmbeddings:
         
         answers = ['허무']
         
-        result = visualize_embeddings(coordinates, answers=answers)
+        result = scatter(coordinates, answers=answers)
         
         assert isinstance(result, go.Figure)
         
@@ -43,7 +43,7 @@ class TestVisualizeEmbeddings:
         })
         
         custom_title = "Custom Test Title"
-        result = visualize_embeddings(
+        result = scatter(
             coordinates, 
             answers=['답1'], 
             title=custom_title
@@ -62,7 +62,7 @@ class TestVisualizeEmbeddings:
         })
         
         with patch('plotly.graph_objects.Figure.show') as mock_show:
-            result = visualize_embeddings(
+            result = scatter(
                 coordinates,
                 answers=['resp1'],
                 show=False
@@ -81,7 +81,7 @@ class TestVisualizeEmbeddings:
         })
         
         with patch('plotly.graph_objects.Figure.show') as mock_show:
-            result = visualize_embeddings(
+            result = scatter(
                 coordinates,
                 answers=['resp1'],
                 show=True
@@ -101,7 +101,7 @@ class TestVisualizeEmbeddings:
         
         answers = ['허무', '공허']
         
-        result = visualize_embeddings(coordinates, answers=answers)
+        result = scatter(coordinates, answers=answers)
         
         assert isinstance(result, go.Figure)
         
@@ -109,9 +109,8 @@ class TestVisualizeEmbeddings:
         """Test visualization with empty coordinate data."""
         coordinates = pd.DataFrame(columns=['x', 'y', 'response', 'token'])
         
-        result = visualize_embeddings(coordinates, answers=[])
-        
-        assert isinstance(result, go.Figure)
+        with pytest.raises(ValueError, match="Answers list cannot be empty"):
+            scatter(coordinates, answers=[])
         
     def test_visualize_embeddings_missing_columns(self):
         """Test visualization with missing required columns."""
@@ -123,7 +122,7 @@ class TestVisualizeEmbeddings:
         })
         
         with pytest.raises(KeyError):
-            visualize_embeddings(coordinates, answers=['resp1'])
+            scatter(coordinates, answers=['resp1'])
             
     def test_visualize_embeddings_nan_values(self):
         """Test visualization with NaN values in coordinates."""
@@ -134,7 +133,7 @@ class TestVisualizeEmbeddings:
             'token': ['tok1', 'tok2', 'tok3']
         })
         
-        result = visualize_embeddings(coordinates, answers=['resp1'])
+        result = scatter(coordinates, answers=['resp1'])
         
         assert isinstance(result, go.Figure)
         
@@ -147,7 +146,7 @@ class TestVisualizeEmbeddings:
             'token': ['tok1', 'tok2', 'tok3', 'tok4']
         })
         
-        result = visualize_embeddings(coordinates, answers=['같은답'])
+        result = scatter(coordinates, answers=['같은답'])
         
         assert isinstance(result, go.Figure)
         
@@ -161,7 +160,7 @@ class TestVisualizeEmbeddings:
             'token': [f'tok_{i}' for i in range(n_points)]
         })
         
-        result = visualize_embeddings(coordinates, answers=['resp_0', 'resp_1'])
+        result = scatter(coordinates, answers=['resp_0', 'resp_1'])
         
         assert isinstance(result, go.Figure)
         
@@ -174,7 +173,7 @@ class TestVisualizeEmbeddings:
             'token': ['tok1', 'tok2', 'tok3']
         })
         
-        result = visualize_embeddings(
+        result = scatter(
             coordinates, 
             answers=['!@#$%', '한글답안']
         )
@@ -190,7 +189,7 @@ class TestVisualizeEmbeddings:
             'token': ['tok1', 'tok2', 'tok3']
         })
         
-        result = visualize_embeddings(coordinates, answers=['중간'])
+        result = scatter(coordinates, answers=['중간'])
         
         assert isinstance(result, go.Figure)
 
@@ -198,7 +197,7 @@ class TestVisualizeEmbeddings:
 class TestVisualizationIntegration:
     """Test visualization integration with other components."""
     
-    @patch('fastrs.core.visualizer.visualize_embeddings')
+    @patch('fastrs.core.object.scatter')
     def test_integration_with_item_visualize(self, mock_visualize):
         """Test integration with Item.visualize method."""
         from fastrs.core.object import Item
@@ -240,7 +239,7 @@ class TestVisualizationIntegration:
         
         answers = ['허무']
         
-        result = visualize_embeddings(coordinates, answers=answers, show=False)
+        result = scatter(coordinates, answers=answers, show=False)
         
         # Verify the figure was created successfully
         assert isinstance(result, go.Figure)
@@ -261,7 +260,7 @@ class TestVisualizationErrorHandling:
         invalid_coordinates = "not_a_dataframe"
         
         with pytest.raises(AttributeError):
-            visualize_embeddings(invalid_coordinates, answers=['test'])
+            scatter(invalid_coordinates, answers=['test'])
             
     def test_visualize_with_invalid_answers_type(self):
         """Test visualization with invalid answers type."""
@@ -274,7 +273,7 @@ class TestVisualizationErrorHandling:
         
         # This should handle gracefully or raise appropriate error
         try:
-            result = visualize_embeddings(coordinates, answers="not_a_list")
+            result = scatter(coordinates, answers="not_a_list")
             assert isinstance(result, go.Figure)
         except (TypeError, ValueError):
             pass  # Expected behavior
@@ -288,9 +287,8 @@ class TestVisualizationErrorHandling:
             'token': ['tok1', 'tok2']
         })
         
-        result = visualize_embeddings(coordinates, answers=None)
-        
-        assert isinstance(result, go.Figure)
+        with pytest.raises(ValueError, match="Answers cannot be None"):
+            scatter(coordinates, answers=None)
 
 
 # Fixtures for visualization tests

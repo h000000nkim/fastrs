@@ -5,6 +5,7 @@ import spacy
 from pecab import PeCab
 from typing import Union, Literal, Callable
 import numpy as np
+from . import util
 
 __all__ = [
     "clean",
@@ -18,19 +19,20 @@ englishtokenizer = spacy.load("en_core_web_sm")
 
 def clean(
     string: str,
-    space : Literal["single allow", "allow", "deny"] = "deny",
-    special: Literal["allow", "deny"] = "deny",
-    unicode: Literal["allow", "deny"] = "deny",
-    tab: Literal["allow", "deny"] = "deny",
-    caps : Literal["allow", "deny"] = "deny",
-    extra_deny: list[str] = None,
+    space : Literal["single allow", "allow", "forbid"] = "forbid",
+    special: Literal["allow", "forbid"] = "forbid",
+    unicode: Literal["allow", "forbid"] = "forbid",
+    tab: Literal["allow", "forbid"] = "forbid",
+    caps : Literal["allow", "forbid"] = "forbid",
+    extra_forbid: list[str] = None,
     extra_allow: list[str] = None
 ) -> str:
-    string = "" if np.isnan(string) else str(string).strip()
+    util.typecheck(string, str)
+    string = string.strip()
 
     #extra
-    for deny in extra_deny if extra_deny is not None else []:
-        string = string.replace(deny, '')
+    for forbid in extra_forbid if extra_forbid is not None else []:
+        string = string.replace(forbid, '')
 
     allow_map = {}
     for idx, allow in enumerate(extra_allow if extra_allow is not None else []):
@@ -41,26 +43,29 @@ def clean(
     #space
     if space == "single allow": string = re.sub(r'\s+', r' ', string)
     if space == "allow": pass
-    if space == "deny": string = re.sub(r'\s+', '', string)
+    if space == "forbid": string = re.sub(r'\s+', '', string)
 
-    #special <- not completed
+    #special
     if special == "allow": pass
-    elif special == "deny": 
-        string = regex.sub(r'[\p{P}&&[^_]]+', '', string)
+    elif special == "forbid": 
+        string = regex.sub(r'\p{P}', '', string)
+        string = regex.sub(r'\p{S}', '', string)
+        if extra_allow and '_' in extra_allow:
+            pass
 
     #unicode
     if unicode == "allow": pass
-    if unicode == "deny":
+    if unicode == "forbid":
         RE_CF = regex.compile(r"\p{Cf}+")
         string = RE_CF.sub("", string)
 
     #tab
     if tab == "allow": pass
-    if tab == "deny": string = re.sub(r'\t', '', string)
+    if tab == "forbid": string = re.sub(r'\t', '', string)
 
     #caps
     if caps == "allow": pass
-    if caps == "deny": string = string.lower()
+    if caps == "forbid": string = string.lower()
 
     #allowance recovery
     for token, original in allow_map.items():
@@ -100,7 +105,11 @@ def tokenize(
 def jamoize(
     string: str
 ) -> str:
-    return jamo.h2hcj(jamo.h2j(string))
+    try:
+        return jamo.j2hcj(jamo.h2j(string))
+    except (TypeError, ValueError) as e:
+        # If jamo conversion fails (e.g., non-Korean characters), return original string
+        return string
 
 def formatize(
     iterables : list[list[str]],
