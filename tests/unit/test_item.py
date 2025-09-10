@@ -1,4 +1,4 @@
-"""
+﻿"""
 Unit tests for the Item class.
 
 Tests the Item class functionality including initialization,
@@ -101,7 +101,7 @@ class TestItemPreprocessing:
     def test_tokenize_morphs(self, sample_item):
         """Test morphological tokenization."""
         with patch('fastrs.core.preprocessor.tokenize') as mock_tokenize:
-            mock_tokenize.return_value = ["토큰1", "토큰2"]
+            mock_tokenize.return_value = ["?좏겙1", "?좏겙2"]
             
             result = sample_item.tokenize(target="all", option="morphs")
             
@@ -111,7 +111,7 @@ class TestItemPreprocessing:
     def test_tokenize_nouns(self, sample_item):
         """Test noun extraction tokenization."""
         with patch('fastrs.core.preprocessor.tokenize') as mock_tokenize:
-            mock_tokenize.return_value = ["명사1", "명사2"]
+            mock_tokenize.return_value = ["紐낆궗1", "紐낆궗2"]
             
             result = sample_item.tokenize(target="answer", option="nouns")
             
@@ -121,7 +121,7 @@ class TestItemPreprocessing:
     def test_jamoize_all_targets(self, sample_item):
         """Test jamo decomposition for all targets."""
         with patch('fastrs.core.preprocessor.jamoize') as mock_jamoize:
-            mock_jamoize.return_value = "ㅈㅏㅁㅗ"
+            mock_jamoize.return_value = "?덀뀖?곥뀠"
             
             result = sample_item.jamoize(target="all")
             
@@ -156,7 +156,7 @@ class TestItemVisualization:
     
     def test_visualize_success(self, item_with_coordinates):
         """Test successful visualization creation."""
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_plot = Mock()
             mock_viz.return_value = mock_plot
             
@@ -218,9 +218,9 @@ class TestItemPrivateMethods:
 def preprocessed_item(sample_item):
     """Provide an Item instance with preprocessed data."""
     # Mock preprocessed attributes
-    sample_item.answer = ["처리된", "답안"]
-    sample_item.response = ["처리된", "학생", "응답"]
-    sample_item.information = "처리된 정보"
+    sample_item.answer = ['processed', 'answer']
+    sample_item.response = ['processed', 'student', 'answer']
+    sample_item.information = 'processed info'
     
     return sample_item
 
@@ -229,12 +229,13 @@ def preprocessed_item(sample_item):
 def item_with_coordinates(sample_item):
     """Provide an Item instance with coordinates for visualization."""
     sample_item.coordinates = pd.DataFrame({
-        'response': ['허무', '공허'],
+        'response': ['?덈Т', '怨듯뿀'],
         'token': ['token1', 'token2'],
         'x': [0.1, 0.2],
         'y': [0.3, 0.4]
     })
     
-    sample_item.original_answer = ["허무"]
+    sample_item.original_answer = ["?덈Т"]
     
     return sample_item
+

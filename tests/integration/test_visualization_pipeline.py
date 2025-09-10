@@ -1,4 +1,4 @@
-"""
+﻿"""
 Integration tests for visualization pipeline.
 
 Tests the complete visualization workflow including dimensionality reduction,
@@ -40,7 +40,7 @@ class TestVisualizationPipelineIntegration:
         assert hasattr(trained_fastrs_with_vectors, 'coordinates')
         
         # Step 2: Visualize
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_visualize:
+        with patch('fastrs.core.visualizer.scatter') as mock_visualize:
             mock_figures = [Mock(spec=go.Figure) for _ in trained_fastrs_with_vectors.items]
             mock_visualize.side_effect = mock_figures
             
@@ -65,7 +65,7 @@ class TestVisualizationPipelineIntegration:
             coordinates = fastrs_ready_for_training.reduce(method="pca")
             
             # Step 3: Visualize
-            with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+            with patch('fastrs.core.visualizer.scatter') as mock_viz:
                 mock_viz.return_value = Mock(spec=go.Figure)
                 plots = fastrs_ready_for_training.visualize()
                 
@@ -89,7 +89,7 @@ class TestVisualizationPipelineIntegration:
             assert len(coordinates.columns) == 4
             
             # Test visualization
-            with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+            with patch('fastrs.core.visualizer.scatter') as mock_viz:
                 mock_viz.return_value = Mock(spec=go.Figure)
                 plots = trained_fastrs_with_vectors.visualize()
                 
@@ -115,7 +115,7 @@ class TestVisualizationPipelineIntegration:
         # Run complete pipeline
         coordinates = trained_fastrs_with_vectors.reduce(method="umap")
         
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_viz.return_value = Mock(spec=go.Figure)
             plots = trained_fastrs_with_vectors.visualize()
             
@@ -145,7 +145,7 @@ class TestVisualizationWithRealData:
         assert len(literature_responses) > 0
         
         # Visualize
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_viz.return_value = Mock(spec=go.Figure)
             plots = literature_visualization_fastrs.visualize()
             
@@ -164,7 +164,7 @@ class TestVisualizationWithRealData:
         assert len(science_responses) > 0
         
         # Visualize
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_viz.return_value = Mock(spec=go.Figure)
             plots = science_visualization_fastrs.visualize()
             
@@ -180,7 +180,7 @@ class TestVisualizationWithRealData:
         assert 'response' in coordinates.columns
         
         # Visualize all items
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_viz.return_value = Mock(spec=go.Figure)
             plots = mixed_subject_visualization_fastrs.visualize()
             
@@ -217,7 +217,7 @@ class TestVisualizationCustomization:
         
     def test_visualization_customization(self, reduced_fastrs):
         """Test visualization with different customization options."""
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_viz.return_value = Mock(spec=go.Figure)
             
             # Test visualization for each item
@@ -263,7 +263,7 @@ class TestVisualizationPerformance:
         coordinates = large_dataset_visualization_fastrs.reduce(method="pca")  # PCA is faster
         
         # Visualize
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_viz.return_value = Mock(spec=go.Figure)
             plots = large_dataset_visualization_fastrs.visualize()
             
@@ -285,7 +285,7 @@ class TestVisualizationPerformance:
         # Run visualization pipeline
         coordinates = trained_fastrs_with_vectors.reduce(method="umap")
         
-        with patch('fastrs.core.visualizer.visualize_embeddings') as mock_viz:
+        with patch('fastrs.core.visualizer.scatter') as mock_viz:
             mock_viz.return_value = Mock(spec=go.Figure)
             plots = trained_fastrs_with_vectors.visualize()
             
@@ -439,7 +439,7 @@ def large_dataset_visualization_fastrs():
         for j, (key, value) in enumerate(base_data.items()):
             new_key = f"{key}_large_{i}"
             large_data[new_key] = {
-                "information": f"{value['information']} (대용량 테스트 {i})",
+                "information": f"{value['information']} (??⑸웾 ?뚯뒪??{i})",
                 "answer": value["answer"][:],
                 "response": value["response"][:]
             }
@@ -457,3 +457,4 @@ def large_dataset_visualization_fastrs():
     fastrs.jamodict = {f"large_token_{i}": f"response_{i % 20}" for i in range(200)}
     
     return fastrs
+

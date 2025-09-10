@@ -20,25 +20,25 @@ class Fastrs:
     def __init__(
         self,
         data: Dict[str, Dict[str, Union[str, list[str], None]]] = None,
-        answers: np.ndarray = None,
-        responses: np.ndarray = None,
-        informations: np.ndarray = None,
+        answers: np.ndarray | list[list[str]] = None,
+        responses: np.ndarray | list[list[str]] = None,
+        informations: np.ndarray | list[list[str]] = None,
         model: Union[FastText, None] = None,
     ) -> None:
         self.model = model
         if data is not None : self.data = data
         else: 
-            util.typecheck(answers, np.ndarray)
-            util.typecheck(responses, np.ndarray)
-            util.typecheck(informations, np.ndarray) if informations is not None else None
+            util.typecheck(answers, [np.ndarray, list])
+            util.typecheck(responses, [np.ndarray, list])
+            util.typecheck(informations, [np.ndarray, list]) if informations is not None else None
             self.data = util.formatData(answers, responses, informations)
         util.validData(self.data)
         self.items = [
             Item(
-                name, 
-                v['answer'], 
+                name,
+                v['answer'],
                 v['response'],
-                v.get('information', None)) 
+                v.get('information', None))
                 for name, v in self.data.items()
         ]
 
@@ -58,6 +58,8 @@ class Fastrs:
     def finetune(
         self,
         model: FastText = None,
+        *,
+        epochs: int = 5,
     ) -> FastText:
         """
         """
@@ -66,7 +68,7 @@ class Fastrs:
         model.train(
             corpus_iterable=self.feed,
             total_examples=len(self.feed),
-            epochs=self.epochs,
+            epochs=epochs,
         )
         self.model = model
         return model
@@ -203,7 +205,8 @@ class Fastrs:
         if result["response"].isna().any(): 
             raise ReducerError(
                 f"Some tokens could not be mapped back to responses. {result[result['response'].isna()]['token'].tolist()}")
-        result = result[["response", "token", "x", "y", "count"]]
+        # Keep only the core columns here; count is managed elsewhere (e.g., Item.countize)
+        result = result[["response", "token", "x", "y"]]
         self.coordinates = result
         for item in self.items:
             item.coordinates = (
@@ -240,7 +243,7 @@ class Fastrs:
         self,
         item : list[str] | None = None,
         target: Literal["all", "answer", "response", "information"] | list[Literal["answer", "response", "information"]] = "all",
-        space : Literal["single allow", "allow", "forbid1"] = "forbid",
+        space : Literal["single allow", "allow", "forbid"] = "forbid",
         special: Literal["allow", "forbid"] = "forbid",
         unicode: Literal["allow", "forbid"] = "forbid",
         tab: Literal["allow", "forbid"] = "forbid",
@@ -338,8 +341,8 @@ class Item:
         """
         """
         util.typecheck(name, str)
-        util.typecheck(answer, list)
-        util.typecheck(response, list)
+        util.typecheck(answer, [list, np.ndarray])
+        util.typecheck(response, [list, np.ndarray])
         util.typecheck(information, str) if information is not None else None
         self.name = name
         self.answer = answer

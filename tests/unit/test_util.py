@@ -244,8 +244,8 @@ class TestDataFormatting:
         assert len(result) == 2
         assert "item1" in result
         assert "item2" in result
-        assert result["item1"]["answer"] == ["ans1", "ans2"]
-        assert result["item1"]["response"] == ["resp1", "resp2"]
+        np.testing.assert_array_equal(result["item1"]["answer"], ["ans1", "ans2"])
+        np.testing.assert_array_equal(result["item1"]["response"], ["resp1", "resp2"])
         assert result["item1"]["information"] == "info1"
         
     def test_formatData_mismatched_lengths(self):

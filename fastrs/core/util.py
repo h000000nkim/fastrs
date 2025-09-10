@@ -108,7 +108,12 @@ def typecheck(
                     f"Type of input must be {expected}, but got {type(each)}"
                 )
     else:
-        if isinstance(input, expected): pass
+        if isinstance(expected, list):
+            if any(isinstance(input, exp) for exp in expected): pass
+            else: raise TypeError(
+                f"Type of input must be one of {expected}, but got {type(input)}"
+            )
+        elif isinstance(input, expected): pass
         else: raise TypeError(
             f"Type of input must be {expected}, but got {type(input)}"
         )

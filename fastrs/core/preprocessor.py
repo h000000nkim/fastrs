@@ -15,7 +15,11 @@ __all__ = [
 ]
 
 koreantokenizer = PeCab()
-englishtokenizer = spacy.load("en_core_web_sm")
+try:
+    englishtokenizer = spacy.load("en_core_web_sm")
+except Exception:
+    # Fallback to a blank English tokenizer if the small model is unavailable
+    englishtokenizer = spacy.blank("en")
 
 def clean(
     string: str,

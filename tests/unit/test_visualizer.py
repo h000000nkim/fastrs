@@ -1,4 +1,4 @@
-"""
+﻿"""
 Unit tests for visualization functions.
 
 Tests the visualization functionality including embedding visualization,
@@ -17,7 +17,7 @@ from fastrs.core.visualizer import scatter
 class TestScatter:
     """Test the scatter function."""
     
-    def test_visualize_embeddings_basic(self):
+    def test_scatter_basic(self):
         """Test basic embedding visualization functionality."""
         # Create sample coordinate data
         coordinates = pd.DataFrame({
@@ -33,26 +33,26 @@ class TestScatter:
         
         assert isinstance(result, go.Figure)
         
-    def test_visualize_embeddings_with_title(self):
+    def test_scatter_with_title(self):
         """Test visualization with custom title."""
         coordinates = pd.DataFrame({
             'x': [1.0, 2.0],
             'y': [1.0, 2.0],
-            'response': ['답1', '답2'],
+            'response': ['답변1', '답변2'],
             'token': ['tok1', 'tok2']
         })
         
         custom_title = "Custom Test Title"
         result = scatter(
             coordinates, 
-            answers=['답1'], 
+            answers=['답변1'], 
             title=custom_title
         )
         
         assert isinstance(result, go.Figure)
         # Check if title is set (depends on implementation)
         
-    def test_visualize_embeddings_show_false(self):
+    def test_scatter_show_false(self):
         """Test visualization with show=False parameter."""
         coordinates = pd.DataFrame({
             'x': [1.0, 2.0],
@@ -71,7 +71,7 @@ class TestScatter:
             mock_show.assert_not_called()
             assert isinstance(result, go.Figure)
             
-    def test_visualize_embeddings_show_true(self):
+    def test_scatter_show_true(self):
         """Test visualization with show=True parameter."""
         coordinates = pd.DataFrame({
             'x': [1.0, 2.0],
@@ -90,12 +90,12 @@ class TestScatter:
             mock_show.assert_called_once()
             assert isinstance(result, go.Figure)
             
-    def test_visualize_embeddings_multiple_answers(self):
+    def test_scatter_multiple_answers(self):
         """Test visualization with multiple correct answers."""
         coordinates = pd.DataFrame({
             'x': [1.0, 2.0, 3.0, 4.0, 5.0],
             'y': [1.0, 2.0, 3.0, 4.0, 5.0],
-            'response': ['허무', '공허', '허무', '무상', '달관'],
+            'response': ['허무', '공허', '허무', '무상', '절망'],
             'token': ['tok1', 'tok2', 'tok3', 'tok4', 'tok5']
         })
         
@@ -105,14 +105,14 @@ class TestScatter:
         
         assert isinstance(result, go.Figure)
         
-    def test_visualize_embeddings_empty_coordinates(self):
+    def test_scatter_empty_coordinates(self):
         """Test visualization with empty coordinate data."""
         coordinates = pd.DataFrame(columns=['x', 'y', 'response', 'token'])
         
         with pytest.raises(ValueError, match="Answers list cannot be empty"):
             scatter(coordinates, answers=[])
         
-    def test_visualize_embeddings_missing_columns(self):
+    def test_scatter_missing_columns(self):
         """Test visualization with missing required columns."""
         # Missing 'y' column
         coordinates = pd.DataFrame({
@@ -124,7 +124,7 @@ class TestScatter:
         with pytest.raises(KeyError):
             scatter(coordinates, answers=['resp1'])
             
-    def test_visualize_embeddings_nan_values(self):
+    def test_scatter_nan_values(self):
         """Test visualization with NaN values in coordinates."""
         coordinates = pd.DataFrame({
             'x': [1.0, np.nan, 3.0],
@@ -137,20 +137,18 @@ class TestScatter:
         
         assert isinstance(result, go.Figure)
         
-    def test_visualize_embeddings_duplicate_responses(self):
+    def test_scatter_duplicate_responses(self):
         """Test visualization with duplicate response values."""
         coordinates = pd.DataFrame({
             'x': [1.0, 2.0, 3.0, 4.0],
             'y': [1.0, 2.0, 3.0, 4.0],
-            'response': ['같은답', '같은답', '다른답', '같은답'],
+            'response': ['same', 'same', 'different', 'same'],
             'token': ['tok1', 'tok2', 'tok3', 'tok4']
         })
-        
-        result = scatter(coordinates, answers=['같은답'])
-        
+        result = scatter(coordinates, answers=['same'])
         assert isinstance(result, go.Figure)
         
-    def test_visualize_embeddings_large_dataset(self):
+    def test_scatter_large_dataset(self):
         """Test visualization with large dataset."""
         n_points = 1000
         coordinates = pd.DataFrame({
@@ -164,23 +162,23 @@ class TestScatter:
         
         assert isinstance(result, go.Figure)
         
-    def test_visualize_embeddings_special_characters(self):
+    def test_scatter_special_characters(self):
         """Test visualization with special characters in responses."""
         coordinates = pd.DataFrame({
             'x': [1.0, 2.0, 3.0],
             'y': [1.0, 2.0, 3.0],
-            'response': ['!@#$%', '한글답안', 'English_Answer'],
+            'response': ['!@#$%', '한국어답변', 'English_Answer'],
             'token': ['tok1', 'tok2', 'tok3']
         })
         
         result = scatter(
             coordinates, 
-            answers=['!@#$%', '한글답안']
+            answers=['!@#$%', '한국어답변']
         )
         
         assert isinstance(result, go.Figure)
         
-    def test_visualize_embeddings_extreme_coordinates(self):
+    def test_scatter_extreme_coordinates(self):
         """Test visualization with extreme coordinate values."""
         coordinates = pd.DataFrame({
             'x': [-1000.0, 0.0, 1000.0],
@@ -197,7 +195,7 @@ class TestScatter:
 class TestVisualizationIntegration:
     """Test visualization integration with other components."""
     
-    @patch('fastrs.core.object.scatter')
+    @patch('fastrs.core.visualizer.scatter')
     def test_integration_with_item_visualize(self, mock_visualize):
         """Test integration with Item.visualize method."""
         from fastrs.core.object import Item
@@ -234,7 +232,7 @@ class TestVisualizationIntegration:
             'x': [0.1, 0.2, 0.15, 0.25],
             'y': [0.3, 0.4, 0.35, 0.45],
             'response': ['허무', '공허', '허무감', '무상'],
-            'token': ['ㅎㅓㅁㅜ', 'ㄱㅗㅇㅎㅓ', 'ㅎㅓㅁㅜㄱㅏㅁ', 'ㅁㅜㅅㅏㅇ']
+            'token': ['허무토큰', '공허토큰', '허무감토큰', '무상토큰']
         })
         
         answers = ['허무']
@@ -309,9 +307,9 @@ def korean_literature_coordinates():
     return pd.DataFrame({
         'x': [0.1, 0.15, 0.2, 0.12, 0.18, 0.25, 0.3, 0.22],
         'y': [0.3, 0.35, 0.4, 0.32, 0.38, 0.45, 0.5, 0.42],
-        'response': ['허무', '공허', '무상', '허무감', '초월', '달관', '체념', '탈속'],
-        'token': ['ㅎㅓㅁㅜ', 'ㄱㅗㅇㅎㅓ', 'ㅁㅜㅅㅏㅇ', 'ㅎㅓㅁㅜㄱㅏㅁ', 
-                 'ㅊㅗㅇㅗㅓㄹ', 'ㄷㅏㄹㄱㅘㄴ', 'ㅊㅔㄴㅕㅁ', 'ㅌㅏㄹㅅㅗㄱ']
+        'response': ['허무', '공허', '무상', '허무감', '초월', '절망', '체념', '냉소'],
+        'token': ['허무토큰', '공허토큰', '무상토큰', '허무감토큰', 
+                 '초월토큰', '절망토큰', '체념토큰', '냉소토큰']
     })
 
 
@@ -321,7 +319,7 @@ def science_coordinates():
     return pd.DataFrame({
         'x': [0.5, 0.52, 0.48, 0.53, 0.47, 0.55, 0.45],
         'y': [0.6, 0.62, 0.58, 0.63, 0.57, 0.65, 0.55],
-        'response': ['흡수율', '흡수', '반사율', '알베도', '태양에너지', '온도상승', '열흡수'],
-        'token': ['ㅎㅡㅂㅅㅜㅇㅠㄹ', 'ㅎㅡㅂㅅㅜ', 'ㅂㅏㄴㅅㅏㅇㅠㄹ', 'ㅇㅏㄹㅂㅔㄷㅗ', 
-                 'ㅌㅐㅇㅑㅇㅇㅔㄴㅓㅈㅣ', 'ㅇㅗㄴㄷㅗㅅㅏㅇㅅㅡㅇ', 'ㅇㅕㄹㅎㅡㅂㅅㅜ']
+        'response': ['광합성', '호흡', '반사', '소화', '순환', '배설', '생식'],
+        'token': ['광합성토큰', '호흡토큰', '반사토큰', '소화토큰', 
+                 '순환토큰', '배설토큰', '생식토큰']
     })

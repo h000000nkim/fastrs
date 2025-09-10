@@ -27,6 +27,7 @@ dependencies = [
   "umap-learn>=0.5",
   "jamo>=0.4.1",
   "pecab>=1.0.8",
+  "spacy>=3.5",
 ]
 
 [project.optional-dependencies]
@@ -39,6 +40,7 @@ dev = [
   "mkdocstrings[python]>=0.25",
   "mkdocs-minify-plugin>=0.7",
   "mkdocs-git-revision-date-localized-plugin>=1.2",
+  "psutil>=5.9",
 ]
 
 [project.urls]

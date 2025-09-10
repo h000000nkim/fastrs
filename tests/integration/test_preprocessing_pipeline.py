@@ -97,7 +97,7 @@ class TestPreprocessingPipelineIntegration:
         
         # Test response-only preprocessing
         fastrs_with_sample_data.clean(target="response")
-        fastrs_with_sample_data.tokenize(target="response", option="morphs") 
+        fastrs_with_sample_data.tokenize(target="response", option="morphs")
         fastrs_with_sample_data.jamoize(target="response")
         
         # Test mixed target preprocessing
