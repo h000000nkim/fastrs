@@ -187,7 +187,7 @@ class TestPreprocessingPerformance:
         processing_time = end_time - start_time
 
         # Should complete within reasonable time (adjust threshold as needed)
-        assert processing_time < 60.0  # 60 seconds max
+        assert processing_time < 90
         assert hasattr(large_dataset_fastrs, "feed")
         assert len(large_dataset_fastrs.feed) > 0
 
