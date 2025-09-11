@@ -16,6 +16,42 @@ from .visualizer import scatter
 
 
 class Fastrs:
+    """
+    FastText-based Response Similarity analyzer for educational assessment.
+
+    Parameters
+    ----------
+    data : dict, optional
+        Dictionary containing item data with 'answer', 'response', and 'information' keys.
+    answers : numpy.ndarray or list of list of str, optional
+        Array of correct answers for each item.
+    responses : numpy.ndarray or list of list of str, optional
+        Array of student responses for each item.
+    informations : numpy.ndarray or list of list of str, optional
+        Array of item information/context for each item.
+    model : gensim.models.FastText, optional
+        Pre-trained FastText model.
+
+    Attributes
+    ----------
+    data : dict
+        Formatted item data.
+    items : list of Item
+        List of Item objects created from data.
+    model : gensim.models.FastText
+        FastText model for embeddings.
+    feed : list of list of str
+        Preprocessed text data ready for training.
+
+    Examples
+    --------
+    >>> import fastrs
+    >>> answers = [["correct"]]
+    >>> responses = [["correct", "wrong"]]
+    >>> analyzer = fastrs.Fastrs(answers=answers, responses=responses)
+    >>> analyzer.preprocess()
+    >>> model = analyzer.train()
+    """
 
     def __init__(
         self,
@@ -46,6 +82,27 @@ class Fastrs:
         self,
         option: Literal["default", "custom"] = "default"
     ) -> None:
+        """
+        Execute comprehensive text preprocessing pipeline.
+
+        Parameters
+        ----------
+        option : {"default", "custom"}, default="default"
+            Preprocessing option. Default applies cleaning, tokenization,
+            jamo decomposition, and formatting.
+
+        Returns
+        -------
+        list of list of str
+            Preprocessed text data ready for model training.
+
+        Examples
+        --------
+        >>> analyzer = fastrs.Fastrs(data=sample_data)
+        >>> feed = analyzer.preprocess()
+        >>> len(feed) > 0
+        True
+        """
         if option == "default":
             self.clean(target="information")
             self.tokenize(target="all", option="morphs")
@@ -62,6 +119,19 @@ class Fastrs:
         epochs: int = 5,
     ) -> FastText:
         """
+        Fine-tune existing FastText model with preprocessed data.
+
+        Parameters
+        ----------
+        model : gensim.models.FastText, optional
+            Pre-trained FastText model to fine-tune.
+        epochs : int, default=5
+            Number of training epochs.
+
+        Returns
+        -------
+        gensim.models.FastText
+            Fine-tuned FastText model.
         """
         model = model or self.model or util.get_pretrained_model()
         model.build_vocab(self.feed, update=True, trim_rule=None)
@@ -102,6 +172,48 @@ class Fastrs:
         max_final_vocab: Any | None = None,
         shrink_windows: bool = True
     ) -> FastText:
+        """
+        Train FastText model from preprocessed data.
+
+        Parameters
+        ----------
+        sg : int, default=0
+            Training algorithm: 1 for skip-gram, 0 for CBOW.
+        hs : int, default=0
+            Hierarchical softmax: 1 for true, 0 for false.
+        vector_size : int, default=100
+            Dimensionality of word vectors.
+        alpha : float, default=0.025
+            Initial learning rate.
+        window : int, default=5
+            Context window size.
+        min_count : int, default=5
+            Minimum word frequency threshold.
+        epochs : int, default=5
+            Number of training epochs.
+        min_n : int, default=3
+            Minimum character n-gram length.
+        max_n : int, default=6
+            Maximum character n-gram length.
+        **kwargs
+            Additional FastText parameters.
+
+        Returns
+        -------
+        gensim.models.FastText
+            Trained FastText model.
+
+        Raises
+        ------
+        TrainingError
+            If no preprocessed data is available.
+
+        Examples
+        --------
+        >>> analyzer = fastrs.Fastrs(data=sample_data)
+        >>> analyzer.preprocess()
+        >>> model = analyzer.train(vector_size=200, epochs=10)
+        """
         fast_params = {
             "sg": sg,
             "hs": hs,
@@ -187,13 +299,40 @@ class Fastrs:
         method: Literal["pca", "tsne", "umap"] = "umap",
         **method_params: Any,
     ) -> pd.DataFrame:
+        """
+        Reduce word embeddings to 2D coordinates using dimensionality reduction.
+
+        Parameters
+        ----------
+        method : {"umap", "pca", "tsne"}, default="umap"
+            Dimensionality reduction algorithm.
+        **method_params
+            Method-specific parameters passed to the reducer.
+
+        Returns
+        -------
+        pandas.DataFrame
+            DataFrame with columns ['response', 'token', 'x', 'y'] containing
+            2D coordinates for visualization.
+
+        Raises
+        ------
+        ReducerError
+            If dataset is too small for t-SNE or token mapping fails.
+
+        Examples
+        --------
+        >>> analyzer = fastrs.Fastrs(data=sample_data)
+        >>> analyzer.preprocess()
+        >>> analyzer.train()
+        >>> coordinates = analyzer.reduce(method="umap", n_neighbors=5)
+        """
         method_params["n_components"] = 2 if "n_components" not in method_params else method_params["n_components"]
         if method == "umap":
             reducer = UMAP(**method_params)
         elif method == "pca":
             reducer = PCA(**method_params)
         elif method == "tsne":
-            # Check if dataset is large enough for t-SNE
             n_samples = self.model.wv.vectors.shape[0]
             perplexity = method_params.get("perplexity", 30.0)
             if perplexity >= n_samples:
@@ -214,7 +353,6 @@ class Fastrs:
         if result["response"].isna().any(): 
             raise ReducerError(
                 f"Some tokens could not be mapped back to responses. {result[result['response'].isna()]['token'].tolist()}")
-        # Keep only the core columns here; count is managed elsewhere (e.g., Item.countize)
         result = result[["response", "token", "x", "y"]]
         self.coordinates = result
         for item in self.items:
@@ -228,6 +366,14 @@ class Fastrs:
     def hdbscanize(
         self,
     ) -> None:
+        """
+        Perform HDBSCAN clustering on reduced coordinates.
+
+        Raises
+        ------
+        FastrsError
+            If coordinates not found. Run reduce() first.
+        """
         if not hasattr(self, 'coordinates'):
             raise FastrsError("No reduced coordinates found. Please run reduce() before clustering.")
         labeled = []
@@ -239,6 +385,19 @@ class Fastrs:
     def visualize(
         self
     ) -> list[go.Figure]:
+        """
+        Create interactive scatter plot visualizations for all items.
+
+        Returns
+        -------
+        list of plotly.graph_objects.Figure
+            List of interactive scatter plots, one for each item.
+
+        Raises
+        ------
+        FastrsError
+            If coordinates not found. Run reduce() first.
+        """
         if not hasattr(self, 'coordinates'):
             raise FastrsError("No reduced coordinates found. Please run reduce() before visualization.")
         figs = []
@@ -260,8 +419,7 @@ class Fastrs:
         extra_forbid: list[str] | None = None,
         extra_allow: list[str] | None = None,
     ) -> None:
-        """
-        """
+        """Clean text data by removing unwanted characters and formatting."""
         util.literalcheck(target, ["all", "answer", "response", "information"])
         util.literalcheck(space, ["single allow", "allow", "forbid"])
         util.literalcheck(special, ["allow", "forbid"])
@@ -293,8 +451,7 @@ class Fastrs:
         target: Literal["all", "answer", "response", "information"] | list[Literal["answer", "response", "information"]] = "all",
         option: Literal["morphs", "nouns"] = "morphs",
     ) -> None:
-        """
-        """
+        """Tokenize text using morphological analysis or noun extraction."""
         item = item if item is not None else [eachitem.name for eachitem in self.items]
         target = [target] if isinstance(target, str) else target
         for i, current_item in enumerate(self.items):
@@ -308,8 +465,7 @@ class Fastrs:
         item : list[str] | None = None,
         target: Literal["all", "answer", "response", "information"] | list[Literal["answer", "response", "information"]] = "all"
     ) -> None:
-        """
-        """
+        """Decompose Korean text into jamo characters for better similarity analysis."""
         util.literalcheck(target, ["all", "answer", "response", "information"])
         item = item if item is not None else [eachitem.name for eachitem in self.items]
         target = [target] if isinstance(target, str) else target
@@ -326,8 +482,7 @@ class Fastrs:
         item : list[str] | None = None,
         combine : bool = True,
     ) -> None:
-        """
-        """
+        """Format preprocessed data into training-ready feed structure."""
         util.literalcheck(anchor, ["answer", "response", "information"])
         util.literalcheck(iterables, ["answer", "response", "information"])
         item = item if item is not None else [eachitem.name for eachitem in self.items]
@@ -339,6 +494,20 @@ class Fastrs:
         self.feed = feeds
         return feeds
 class Item:
+    """
+    Individual item for educational assessment analysis.
+    
+    Parameters
+    ----------
+    name : str
+        Unique identifier for the item.
+    answer : list of str
+        Correct answers for the item.
+    response : list of str
+        Student responses for the item.
+    information : str, optional
+        Additional context or information about the item.
+    """
 
     def __init__(
         self,
@@ -347,8 +516,6 @@ class Item:
         response: List[str],
         information: str = None,
     ) -> None:
-        """
-        """
         util.typecheck(name, str)
         util.typecheck(answer, [list, np.ndarray])
         util.typecheck(response, [list, np.ndarray])
@@ -372,10 +539,8 @@ class Item:
         extra_forbid: list[str] = None,
         extra_allow: list[str] = None
     ) -> Union[Tuple[Union[str, List[str]]], List[str], str]:
+        """Clean item's texts by removing unwanted characters."""
         util.literalcheck(target, ["all", "answer", "response", "information"])
-        """
-        clean item's texts(answer, response, information)
-        """
         self.cleanparams = {
             "space": space,
             "special": special,
@@ -489,17 +654,13 @@ class Item:
         target = [target] if isinstance(target, str) else target
         results = {}
         if "all" in target or "answer" in target:
-            # Handle nested list structure for tokenized data
             if all(isinstance(item, list) for item in self.answer):
-                # Flatten and apply function to each token
                 results["answer"] = [func(token, **kwargs) for sublist in self.answer for token in sublist]
             else:
                 results["answer"] = [func(s, **kwargs) for s in self.answer]
         else: results["answer"] = self.answer
         if "all" in target or "response" in target:
-            # Handle nested list structure for tokenized data
             if all(isinstance(item, list) for item in self.response):
-                # Flatten and apply function to each token
                 results["response"] = [func(token, **kwargs) for sublist in self.response for token in sublist]
             else:
                 results["response"] = [func(s, **kwargs) for s in self.response]

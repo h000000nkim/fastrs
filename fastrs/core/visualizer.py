@@ -14,16 +14,28 @@ def scatter(
         show: bool = False,
 ) -> go.Figure:
     """
-    Unified scatter function - wraps various scatter types
-    
-    Args:
-        df: DataFrame to visualize
-        answers: Answer strings to highlight
-        title: Plot title
-        theme: Color theme
-        scatter_type: "simple", "valuecount", "labeled", "combined"
+    Create interactive scatter plot visualization.
+
+    Parameters
+    ----------
+    df : pandas.DataFrame
+        DataFrame containing 'x', 'y', 'response', 'token' columns.
+    answers : str or list of str
+        Answer strings to highlight in the visualization.
+    title : str, optional
+        Plot title.
+    theme : {"default", "colorblind_friendly"}, default="default"
+        Color theme for the plot.
+    scatter_type : str, default="simple"
+        Type of scatter plot: "simple", "valuecount", "labeled", "combined".
+    show : bool, default=False
+        Whether to display the plot immediately.
+
+    Returns
+    -------
+    plotly.graph_objects.Figure
+        Interactive scatter plot figure.
     """
-    # Handle edge cases
     if answers is None:
         raise ValueError("Answers cannot be None")
     
@@ -33,7 +45,6 @@ def scatter(
     if len(answers) == 0:
         raise ValueError("Answers list cannot be empty")
     
-    # Call corresponding scatter function
     if scatter_type == "simple":
         fig = _simple_scatter(df, answers, title, theme)
     elif scatter_type == "valuecount":
@@ -51,9 +62,6 @@ def scatter(
     return fig
 
 
-# ================================
-# Individual scatter actions
-# ================================
 
 def _simple_scatter(
         df: pd.DataFrame,
@@ -65,15 +73,12 @@ def _simple_scatter(
     Basic 2D scatterplot
     Required columns: ["response", "token", "x", "y"]
     """
-    # Load configurations
     color_schemes = util.load_color_schemes()
     colors = color_schemes[theme]
     plot_config = util.load_plot_config()
     
-    # Copy data and transform coordinates
     df_viz = df.copy()
     
-    # Move first answer to origin (0,0)
     first_answer = answers[0]
     origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
     
@@ -81,14 +86,12 @@ def _simple_scatter(
         df_viz["x"] = df_viz["x"] - origin_point["x"]
         df_viz["y"] = df_viz["y"] - origin_point["y"]
     
-    # Separate answers and non-answers
     answer_mask = df_viz["response"].isin(answers)
     answers_df = df_viz[answer_mask]
     non_answers_df = df_viz[~answer_mask]
     
     fig = go.Figure()
     
-    # Non-answer points (fixed light gray)
     if not non_answers_df.empty:
         fig.add_trace(go.Scatter(
             x=non_answers_df["x"],
@@ -107,7 +110,6 @@ def _simple_scatter(
             hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<extra></extra>"
         ))
     
-    # Answer points (showing response values)
     if not answers_df.empty:
         fig.add_trace(go.Scatter(
             x=answers_df["x"],
@@ -128,7 +130,6 @@ def _simple_scatter(
             hovertemplate="<b>Answer: %{text}</b><extra></extra>"
         ))
     
-    # Layout configuration
     if title is None:
         title = f"Embedding Visualization - {', '.join(answers)}"
     
@@ -156,31 +157,25 @@ def _valuecount_scatter(
     3D scatter plot with count information
     Required columns: ["response", "token", "x", "y", "count"]
     """
-    # Load configurations
     color_schemes = util.load_color_schemes()
     colors = color_schemes[theme]
     plot_config = util.load_plot_config()
     
-    # Copy data and transform coordinates
     df_viz = df.copy()
     
-    # Move first answer to origin (0,0,count)
     first_answer = answers[0]
     origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
     
     if origin_point is not None:
         df_viz["x"] = df_viz["x"] - origin_point["x"]
         df_viz["y"] = df_viz["y"] - origin_point["y"]
-        # Don't transform z-axis (count)
     
-    # Separate answers and non-answers
     answer_mask = df_viz["response"].isin(answers)
     answers_df = df_viz[answer_mask]
     non_answers_df = df_viz[~answer_mask]
     
     fig = go.Figure()
     
-    # Non-answer 3D points (fixed light gray)
     if not non_answers_df.empty:
         fig.add_trace(go.Scatter3d(
             x=non_answers_df["x"],
@@ -201,7 +196,6 @@ def _valuecount_scatter(
             hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<br>count: %{customdata[2]}<extra></extra>"
         ))
     
-    # Answer 3D points (showing response values)
     if not answers_df.empty:
         fig.add_trace(go.Scatter3d(
             x=answers_df["x"],
@@ -223,7 +217,6 @@ def _valuecount_scatter(
             hovertemplate="<b>Answer: %{text}</b><br>count: %{z}<extra></extra>"
         ))
     
-    # Layout configuration
     if title is None:
         title = f"Embedding Visualization (Count) - {', '.join(answers)}"
     
@@ -252,15 +245,12 @@ def _labeled_scatter(
     Scatterplot with different colors by label
     Required columns: ["response", "token", "x", "y", "label"]
     """
-    # Load configurations
     color_schemes = util.load_color_schemes()
     colors = color_schemes[theme]
     plot_config = util.load_plot_config()
     
-    # Copy data and transform coordinates
     df_viz = df.copy()
     
-    # Move first answer to origin (0,0)
     first_answer = answers[0]
     origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
     
@@ -270,25 +260,20 @@ def _labeled_scatter(
     
     fig = go.Figure()
     
-    # Display with different colors for each label
     unique_labels = df_viz["label"].unique()
     answer_mask = df_viz["response"].isin(answers)
     
-    # Color mapping (use available colors from label_colors)
     available_colors = list(colors["label_colors"].keys())
     
     for i, label in enumerate(unique_labels):
         label_data = df_viz[df_viz["label"] == label]
         
-        # Separate answer data from non-answer data
         label_answers = label_data[label_data["response"].isin(answers)]
         label_non_answers = label_data[~label_data["response"].isin(answers)]
         
-        # Color selection (cycle if not enough colors available)
         color_key = available_colors[i % len(available_colors)]
         color = colors["label_colors"][color_key]
         
-        # Non-answer points
         if not label_non_answers.empty:
             fig.add_trace(go.Scatter(
                 x=label_non_answers["x"],
@@ -308,8 +293,7 @@ def _labeled_scatter(
                 hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<br>label: %{customdata[2]}<extra></extra>"
             ))
         
-        # Answer points (showing response values)
-        if not label_answers.empty:
+            if not label_answers.empty:
             fig.add_trace(go.Scatter(
                 x=label_answers["x"],
                 y=label_answers["y"],
@@ -334,7 +318,6 @@ def _labeled_scatter(
                 ], axis=-1)
             ))
     
-    # Layout configuration
     if title is None:
         title = f"Embedding Visualization (Labeled) - {', '.join(answers)}"
     
@@ -362,15 +345,12 @@ def _combined_scatter(
     Combined visualization of valuecount_scatter and labeled_scatter
     Required columns: ["response", "token", "x", "y", "count", "label"]
     """
-    # Load configurations
     color_schemes = util.load_color_schemes()
     colors = color_schemes[theme]
     plot_config = util.load_plot_config()
     
-    # Copy data and transform coordinates
     df_viz = df.copy()
     
-    # Move first answer to origin
     first_answer = answers[0]
     origin_point = df_viz[df_viz["response"] == first_answer].iloc[0] if not df_viz[df_viz["response"] == first_answer].empty else None
     
@@ -380,22 +360,18 @@ def _combined_scatter(
     
     fig = go.Figure()
     
-    # 3D visualization with different colors by label
     unique_labels = df_viz["label"].unique()
     available_colors = list(colors["label_colors"].keys())
     
     for i, label in enumerate(unique_labels):
         label_data = df_viz[df_viz["label"] == label]
         
-        # Separate answer data from non-answer data
         label_answers = label_data[label_data["response"].isin(answers)]
         label_non_answers = label_data[~label_data["response"].isin(answers)]
         
-        # Color selection
         color_key = available_colors[i % len(available_colors)]
         color = colors["label_colors"][color_key]
         
-        # Non-answer 3D points
         if not label_non_answers.empty:
             fig.add_trace(go.Scatter3d(
                 x=label_non_answers["x"],
@@ -417,8 +393,7 @@ def _combined_scatter(
                 hovertemplate="<b>response: %{customdata[0]}</b><br>token: %{customdata[1]}<br>label: %{customdata[2]}<br>count: %{customdata[3]}<extra></extra>"
             ))
         
-        # Answer 3D points (showing response values)
-        if not label_answers.empty:
+            if not label_answers.empty:
             fig.add_trace(go.Scatter3d(
                 x=label_answers["x"],
                 y=label_answers["y"],
@@ -445,7 +420,6 @@ def _combined_scatter(
                 ], axis=-1)
             ))
     
-    # Layout configuration
     if title is None:
         title = f"Embedding Visualization (Combined) - {', '.join(answers)}"
     

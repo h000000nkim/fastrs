@@ -18,7 +18,6 @@ koreantokenizer = PeCab()
 try:
     englishtokenizer = spacy.load("en_core_web_sm")
 except Exception:
-    # Fallback to a blank English tokenizer if the small model is unavailable
     englishtokenizer = spacy.blank("en")
 
 def clean(
@@ -32,8 +31,6 @@ def clean(
     extra_allow: list[str] = None
 ) -> str:
     util.typecheck(string, str)
-    
-    # Validate literal parameters
     util.literalcheck(space, ["single allow", "allow", "forbid"])
     util.literalcheck(special, ["allow", "forbid"])
     util.literalcheck(unicode, ["allow", "forbid"])
@@ -42,22 +39,19 @@ def clean(
     
     string = string.strip()
 
-    #extra
     for forbid in extra_forbid if extra_forbid is not None else []:
         string = string.replace(forbid, '')
 
     allow_map = {}
     for idx, allow in enumerate(extra_allow if extra_allow is not None else []):
-        replace_token = f"9allow{idx}9"  # Use pattern that won't be affected by case or special char removal
+        replace_token = f"9allow{idx}9"
         allow_map[replace_token] = allow
         string = string.replace(allow, replace_token)
     
-    #space
     if space == "single allow": string = re.sub(r'\s+', r' ', string)
     if space == "allow": pass
     if space == "forbid": string = re.sub(r'\s+', '', string)
 
-    #special
     if special == "allow": pass
     elif special == "forbid": 
         string = regex.sub(r'\p{P}', '', string)
@@ -65,25 +59,20 @@ def clean(
         if extra_allow and '_' in extra_allow:
             pass
 
-    #unicode
     if unicode == "allow": pass
     if unicode == "forbid":
         RE_CF = regex.compile(r"\p{Cf}+")
         string = RE_CF.sub("", string)
 
-    #tab
     if tab == "allow": pass
     if tab == "forbid": string = re.sub(r'\t', '', string)
 
-    #caps
     if caps == "allow": pass
     if caps == "forbid": string = string.lower()
 
-    #allowance recovery
     for token, original in allow_map.items():
         string = string.replace(token, original)
 
-    #remove undervars
     string = re.sub(r'_', '', string)
 
     return string
@@ -123,7 +112,6 @@ def jamoize(
     try:
         return jamo.j2hcj(jamo.h2j(string))
     except (TypeError, ValueError) as e:
-        # If jamo conversion fails (e.g., non-Korean characters), return original string
         return string
 
 def formatize(

@@ -75,15 +75,12 @@ def get_pretrained_model(
     bin_path = os.path.join(model_dir, 'cc.ko.300.bin')
     gz_path = os.path.join(model_dir, 'cc.ko.300.bin.gz')
 
-    # If already decompressed, load directly
     if os.path.exists(bin_path):
         return load_facebook_model(bin_path)
 
-    # Download compressed file if missing
     if not os.path.exists(gz_path):
         urllib.request.urlretrieve(url, gz_path)
 
-    # Decompress to .bin
     with gzip.open(gz_path, 'rb') as f_in, open(bin_path, 'wb') as f_out:
         shutil.copyfileobj(f_in, f_out)
 
@@ -137,7 +134,6 @@ def formatData(
         information: np.ndarray = None,
 ) -> dict:
     
-    #assertion
     if answer is not None and response is not None and information is not None: pass
     else: raise UtilError(
         f"answer, response, and information must be provided. But answer: {type(answer)}, response: {type(response)}, information: {type(information)}"
@@ -147,7 +143,6 @@ def formatData(
         f"Length of answer, response, and information must be the same. But answer: {len(answer)}, response: {len(response)}, information: {len(information)}"
     )
 
-    #format
     result = {}
     for i in range(len(answer)):
         key = f"item{i+1}"
@@ -163,7 +158,6 @@ def validData(
 ) -> None:
     for itemkey in data.keys():
 
-        # type check for container types
         if isinstance(data[itemkey]["answer"], (list, tuple, np.ndarray)):
             if isinstance(data[itemkey]["answer"], np.ndarray):
                 if data[itemkey]["answer"].ndim == 1: pass
@@ -189,13 +183,11 @@ def validData(
             f"information must be str, but for item `{itemkey}`: {type(data[itemkey]['information'])}"
         )
 
-        #length check
         if len(data[itemkey]["answer"]) > 0: pass
         else: raise UtilError(
             f"Length of answer must be greater than 0. But for item `{itemkey}`: {len(data[itemkey]['answer'])}"
             )
         
-        #type check for elements
         if all(isinstance(x, str) for x in data[itemkey]['answer']): pass
         else: raise UtilError(
             f"All elements in answer must be type str, but for item `{itemkey}`: {set(type(x) for x in data[itemkey]['answer'])}"
