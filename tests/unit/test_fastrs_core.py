@@ -12,8 +12,8 @@ import pandas as pd
 from unittest.mock import Mock, patch
 from gensim.models import FastText
 
-from fastrs.core.object import Fastrs, Item
-from fastrs.core.exceptions import FastrsError, TrainingError, ReducerError
+from simars.core.object import Fastrs, Item
+from simars.core.exceptions import FastrsError, TrainingError, ReducerError
 
 
 class TestFastrsInitialization:

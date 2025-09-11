@@ -7,7 +7,7 @@ ensuring proper error handling throughout the FastRS package.
 
 import pytest
 
-from fastrs.core.exceptions import (
+from simars.core.exceptions import (
     FastrsError,
     PreprocessingError,
     TrainingError,

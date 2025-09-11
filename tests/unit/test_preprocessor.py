@@ -8,7 +8,7 @@ tokenization, jamo decomposition, and data formatting.
 import pytest
 from unittest.mock import Mock, patch
 
-from fastrs.core import preprocessor
+from simars.core import preprocessor
 
 
 class TestCleanFunction:

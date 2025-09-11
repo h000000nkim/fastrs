@@ -11,8 +11,8 @@ import numpy as np
 from unittest.mock import Mock, patch, mock_open
 from gensim.models import FastText
 
-from fastrs.core import util
-from fastrs.core.exceptions import UtilError
+from simars.core import util
+from simars.core.exceptions import UtilError
 
 
 class TestConfigurationLoading:

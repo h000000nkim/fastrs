@@ -11,7 +11,7 @@ import numpy as np
 from unittest.mock import Mock, patch
 import plotly.graph_objects as go
 
-from fastrs.core.visualizer import scatter
+from simars.core.visualizer import scatter
 
 
 class TestScatter:
@@ -201,7 +201,7 @@ class TestVisualizationIntegration:
     @patch("fastrs.core.object.scatter")
     def test_integration_with_item_visualize(self, mock_visualize):
         """Test integration with Item.visualize method."""
-        from fastrs.core.object import Item
+        from simars.core.object import Item
 
         # Setup mock
         mock_figure = Mock(spec=go.Figure)

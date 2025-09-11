@@ -13,7 +13,7 @@ import os
 from unittest.mock import Mock
 from gensim.models import FastText
 
-from fastrs.core.object import Fastrs, Item
+from simars.core.object import Fastrs, Item
 from tests.fixtures import load_sample_data, create_minimal_data
 
 

@@ -7,7 +7,7 @@ jamo decomposition, and data formatting as integrated processes.
 
 import pytest
 
-from fastrs.core.object import Fastrs
+from simars.core.object import Fastrs
 from tests.fixtures import load_sample_data
 
 

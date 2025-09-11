@@ -10,8 +10,8 @@ import numpy as np
 from unittest.mock import Mock, patch
 from gensim.models import FastText
 
-from fastrs.core.object import Fastrs
-from fastrs.core.exceptions import TrainingError
+from simars.core.object import Fastrs
+from simars.core.exceptions import TrainingError
 from tests.fixtures import load_sample_data
 
 

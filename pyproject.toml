@@ -57,16 +57,16 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/h000000nkim/fastrs"
-Repository = "https://github.com/h000000nkim/fastrs"
-Documentation = "https://h000000nkim.github.io/fastrs/"
+Homepage = "https://github.com/h000000nkim/simars"
+Repository = "https://github.com/h000000nkim/simars"
+Documentation = "https://h000000nkim.github.io/simars/"
 
 [tool.hatch.build.targets.wheel]
-packages = ["fastrs"]
-artifacts = ["fastrs/_config/*.json", "wheelhouse/*.whl"]
+packages = ["simars"]
+artifacts = ["simars/_config/*.json", "wheelhouse/*.whl"]
 
 [tool.hatch.build.targets.sdist]
-include = ["fastrs", "README.md", "LICENSE", "pyproject.toml", "tests", "wheelhouse", "MANIFEST.in"]
+include = ["simars", "README.md", "LICENSE", "pyproject.toml", "tests", "wheelhouse", "MANIFEST.in"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

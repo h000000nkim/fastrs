@@ -11,8 +11,8 @@ import pandas as pd
 from unittest.mock import Mock, patch
 import plotly.graph_objects as go
 
-from fastrs.core.object import Fastrs
-from fastrs.core.exceptions import FastrsError
+from simars.core.object import Fastrs
+from simars.core.exceptions import FastrsError
 from tests.fixtures import load_sample_data
 
 

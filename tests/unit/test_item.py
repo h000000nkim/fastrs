@@ -9,8 +9,8 @@ import pytest
 import pandas as pd
 from unittest.mock import Mock, patch
 
-from fastrs.core.object import Item
-from fastrs.core.exceptions import ItemError
+from simars.core.object import Item
+from simars.core.exceptions import ItemError
 
 
 class TestItemInitialization:
