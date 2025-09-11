@@ -15,6 +15,9 @@ FastRS is a comprehensive toolkit for analyzing response similarity using FastTe
 
 ```bash
 pip install fastrs
+
+# Install spaCy English model (required for text processing)
+python -m spacy download en_core_web_sm
 ```
 
 ### Development Installation

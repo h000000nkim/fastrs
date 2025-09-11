@@ -12,35 +12,48 @@ license = { text = "MIT" }
 authors = [{ name = "Hoon Kim", email = "h000000nkim@gmail.com" }]
 keywords = ["fasttext", "similarity", "nlp", "education", "rater", "korean", "jamo", "morphology"]
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "Intended Audience :: Education",
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Artificial Intelligence",
+  "Topic :: Text Processing :: Linguistic",
+  "Topic :: Education",
   "Programming Language :: Python :: 3",
   "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
   "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
 ]
 
 dependencies = [
-  "gensim>=4.3",
-  "numpy>=1.23,<2.3",
-  "pandas>=1.5",
-  "plotly>=5.0",
-  "scikit-learn>=1.0",
-  "umap-learn>=0.5",
+  "numpy>=1.26,<2.0",
+  "gensim>=4.3.3",
+  "pandas>=2.3.0",
+  "plotly>=5.24",
+  "scikit-learn>=1.7.0",
+  "umap-learn>=0.5.6",
   "jamo>=0.4.1",
   "pecab>=1.0.8",
-  "spacy>=3.5",
+  "spacy>=3.6,<3.8", 
+  "thinc>=8.1,<8.3",
+  "scipy>=1.13,<1.15",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8",
-  "pytest-cov>=4.0",
-  "pytest-mock>=3.10",
-  "ruff>=0.5",
+  "pytest>=8.3",
+  "pytest-cov>=5.0",
+  "pytest-mock>=3.14",
+  "ruff>=0.6",
   "mkdocs-material>=9.5",
-  "mkdocstrings[python]>=0.25",
-  "mkdocs-minify-plugin>=0.7",
+  "mkdocstrings[python]>=0.26",
+  "mkdocs-minify-plugin>=0.8",
   "mkdocs-git-revision-date-localized-plugin>=1.2",
-  "psutil>=5.9",
+  "psutil>=6.0",
 ]
 
 [project.urls]
@@ -50,10 +63,10 @@ Documentation = "https://h000000nkim.github.io/fastrs/"
 
 [tool.hatch.build.targets.wheel]
 packages = ["fastrs"]
-artifacts = ["fastrs/_config/*.json"]
+artifacts = ["fastrs/_config/*.json", "wheelhouse/*.whl"]
 
 [tool.hatch.build.targets.sdist]
-include = ["fastrs", "README.md", "LICENSE", "pyproject.toml", "tests", "MANIFEST.in"]
+include = ["fastrs", "README.md", "LICENSE", "pyproject.toml", "tests", "wheelhouse", "MANIFEST.in"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

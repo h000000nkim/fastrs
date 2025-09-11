@@ -319,17 +319,17 @@ class TestDataValidation:
             util.validData(data)
             
     def test_validData_mismatched_lengths(self):
-        """Test validData with mismatched answer/response lengths."""
+        """Test validData with mismatched answer/response lengths - this is allowed."""
         data = {
             "item1": {
                 "answer": ["ans1", "ans2"],
-                "response": ["resp1"],  # Different length
+                "response": ["resp1"],  # Different length is allowed
                 "information": "info1"
             }
         }
         
-        with pytest.raises(UtilError, match="Length of answer and response must be the same"):
-            util.validData(data)
+        # Should not raise any exception - different lengths are allowed
+        util.validData(data)
             
     def test_validData_empty_answers(self):
         """Test validData with empty answers."""

@@ -32,6 +32,14 @@ def clean(
     extra_allow: list[str] = None
 ) -> str:
     util.typecheck(string, str)
+    
+    # Validate literal parameters
+    util.literalcheck(space, ["single allow", "allow", "forbid"])
+    util.literalcheck(special, ["allow", "forbid"])
+    util.literalcheck(unicode, ["allow", "forbid"])
+    util.literalcheck(tab, ["allow", "forbid"])
+    util.literalcheck(caps, ["allow", "forbid"])
+    
     string = string.strip()
 
     #extra
@@ -40,7 +48,7 @@ def clean(
 
     allow_map = {}
     for idx, allow in enumerate(extra_allow if extra_allow is not None else []):
-        replace_token = f"__ALLOW{idx}__"
+        replace_token = f"9allow{idx}9"  # Use pattern that won't be affected by case or special char removal
         allow_map[replace_token] = allow
         string = string.replace(allow, replace_token)
     
@@ -84,6 +92,9 @@ def tokenize(
     string: str, 
     option: Literal["morphs", "nouns"] = "morphs"
 ) -> list[str]:
+    util.typecheck(string, str)
+    util.literalcheck(option, ["morphs", "nouns"])
+    
     result = []
 
     if option == "morphs":
@@ -120,6 +131,11 @@ def formatize(
     anchor: list[str] | None = None,
     combine : bool = True
 ) -> list[list[str]]:
+    util.typecheck(iterables, list)
+    util.typecheck(combine, bool)
+    if anchor is not None:
+        util.typecheck(anchor, list)
+    
     anchor = anchor if anchor is not None else []
     result = []
     for ls in iterables:

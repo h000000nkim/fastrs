@@ -95,14 +95,16 @@ class TestFastrsPreprocessing:
         result = fastrs_instance.clean(target=["answer", "response"])
         assert isinstance(result, list)
         
-    def test_tokenize_method(self, fastrs_instance):
+    def test_tokenize_method(self, sample_data):
         """Test the tokenize method with different options."""
-        # Test morphological tokenization
-        result = fastrs_instance.tokenize(option="morphs")
+        # Test morphological tokenization with fresh instance
+        fastrs_morphs = Fastrs(data=sample_data)
+        result = fastrs_morphs.tokenize(option="morphs")
         assert isinstance(result, list)
         
-        # Test noun extraction
-        result = fastrs_instance.tokenize(option="nouns")
+        # Test noun extraction with fresh instance
+        fastrs_nouns = Fastrs(data=sample_data)
+        result = fastrs_nouns.tokenize(option="nouns")
         assert isinstance(result, list)
         
     def test_jamoize_method(self, fastrs_instance):

@@ -156,7 +156,7 @@ class TestItemVisualization:
     
     def test_visualize_success(self, item_with_coordinates):
         """Test successful visualization creation."""
-        with patch('fastrs.core.visualizer.scatter') as mock_viz:
+        with patch('fastrs.core.object.scatter') as mock_viz:
             mock_plot = Mock()
             mock_viz.return_value = mock_plot
             
@@ -229,13 +229,13 @@ def preprocessed_item(sample_item):
 def item_with_coordinates(sample_item):
     """Provide an Item instance with coordinates for visualization."""
     sample_item.coordinates = pd.DataFrame({
-        'response': ['?덈Т', '怨듯뿀'],
+        'response': ['허무', '공허'],
         'token': ['token1', 'token2'],
         'x': [0.1, 0.2],
         'y': [0.3, 0.4]
     })
     
-    sample_item.original_answer = ["?덈Т"]
+    sample_item.original_answer = ["허무"]
     
     return sample_item
 

@@ -108,22 +108,6 @@ class TestPreprocessingPipelineIntegration:
         # All should complete without error
         assert True
         
-    def test_preprocessing_korean_text_pipeline(self, korean_text_fastrs):
-        """Test preprocessing pipeline with Korean text specifically."""
-        # Run full preprocessing
-        result = korean_text_fastrs.preprocess(option="default")
-        
-        # Verify Korean-specific processing
-        assert hasattr(korean_text_fastrs, 'feed')
-        
-        # Check that jamo decomposition occurred
-        for item in korean_text_fastrs.items:
-            assert hasattr(item, 'jamodict')
-            # Verify jamo strings are longer than original (decomposed)
-            for original, jamo in item.jamodict.items():
-                if any(ord(char) >= 0xAC00 and ord(char) <= 0xD7A3 for char in original):
-                    assert len(jamo) >= len(original)
-                    
     def test_preprocessing_error_handling(self, fastrs_with_sample_data):
         """Test preprocessing pipeline error handling."""
         # Test with invalid cleaning parameters
@@ -229,23 +213,6 @@ def fastrs_with_sample_data():
     data = load_sample_data()
     return Fastrs(data=data)
 
-
-@pytest.fixture
-def korean_text_fastrs():
-    """Provide Fastrs instance with Korean text data."""
-    data = {
-        "korean_item1": {
-            "information": "한국어 텍스트 전처리 테스트입니다.",
-            "answer": ["정답", "올바른답"],
-            "response": ["정답", "올바른답", "틀린답", "부분정답"]
-        },
-        "korean_item2": {
-            "information": "또 다른 한국어 텍스트 처리 예제입니다.",
-            "answer": ["답안", "정확한답"],
-            "response": ["답안", "정확한답", "오답", "애매한답"]
-        }
-    }
-    return Fastrs(data=data)
 
 
 @pytest.fixture

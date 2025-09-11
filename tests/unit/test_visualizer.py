@@ -195,7 +195,7 @@ class TestScatter:
 class TestVisualizationIntegration:
     """Test visualization integration with other components."""
     
-    @patch('fastrs.core.visualizer.scatter')
+    @patch('fastrs.core.object.scatter')
     def test_integration_with_item_visualize(self, mock_visualize):
         """Test integration with Item.visualize method."""
         from fastrs.core.object import Item

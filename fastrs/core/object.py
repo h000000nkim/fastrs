@@ -193,6 +193,15 @@ class Fastrs:
         elif method == "pca":
             reducer = PCA(**method_params)
         elif method == "tsne":
+            # Check if dataset is large enough for t-SNE
+            n_samples = self.model.wv.vectors.shape[0]
+            perplexity = method_params.get("perplexity", 30.0)
+            if perplexity >= n_samples:
+                raise ReducerError(
+                    f"Dataset too small for t-SNE: perplexity ({perplexity}) must be less than "
+                    f"number of samples ({n_samples}). Try using 'umap' or 'pca' instead, "
+                    f"or provide a smaller perplexity value (e.g., perplexity={max(5, n_samples//4)})."
+                )
             reducer = TSNE(**method_params)
         else:
             raise ValueError(f"Unknown method: {method}")
@@ -393,9 +402,9 @@ class Item:
         util.literalcheck(target, ["all", "answer", "response", "information"])
         util.literalcheck(option, ["morphs", "nouns"])
         self.answer, self.response, self.information = self._match_target(target, preprocessor.tokenize, option=option).values()
-        self.token_answer = self.answer if self.answer != (self.clean_answer if self.clean_answer is not None else self.original_answer) else None
-        self.token_response = self.response if self.response != (self.clean_response if self.clean_response is not None else self.original_response) else None
-        self.token_information = self.information if self.information != (self.clean_information if self.clean_information is not None else self.original_information) else None
+        self.token_answer = self.answer if self.answer != (getattr(self, 'clean_answer', None) if getattr(self, 'clean_answer', None) is not None else self.original_answer) else None
+        self.token_response = self.response if self.response != (getattr(self, 'clean_response', None) if getattr(self, 'clean_response', None) is not None else self.original_response) else None
+        self.token_information = self.information if self.information != (getattr(self, 'clean_information', None) if getattr(self, 'clean_information', None) is not None else self.original_information) else None
         return self._parse_return(target)
 
     def jamoize(
@@ -410,9 +419,9 @@ class Item:
         self.answer, self.response, self.information = self._match_target(target, preprocessor.jamoize).values()
         jamos = self.answer + self.response
         self.jamodict = {orig: jamoed for orig, jamoed in zip(ansresps, jamos)}
-        self.jamoized_answer = self.answer if self.answer != (self.token_answer if self.token_answer is not None else (self.clean_answer if self.clean_answer is not None else self.original_answer)) else None
-        self.jamoized_response = self.response if self.response != (self.token_response if self.token_response is not None else (self.clean_response if self.clean_response is not None else self.original_response)) else None
-        self.jamoized_information = self.information if self.information != (self.token_information if self.token_information is not None else (self.clean_information if self.clean_information is not None else self.original_information)) else None
+        self.jamoized_answer = self.answer if self.answer != (getattr(self, 'token_answer', None) if getattr(self, 'token_answer', None) is not None else (getattr(self, 'clean_answer', None) if getattr(self, 'clean_answer', None) is not None else self.original_answer)) else None
+        self.jamoized_response = self.response if self.response != (getattr(self, 'token_response', None) if getattr(self, 'token_response', None) is not None else (getattr(self, 'clean_response', None) if getattr(self, 'clean_response', None) is not None else self.original_response)) else None
+        self.jamoized_information = self.information if self.information != (getattr(self, 'token_information', None) if getattr(self, 'token_information', None) is not None else (getattr(self, 'clean_information', None) if getattr(self, 'clean_information', None) is not None else self.original_information)) else None
         return self._parse_return(target)
     
     def formatize(
