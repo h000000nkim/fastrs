@@ -11,12 +11,6 @@ from .core.visualizer import scatter
 from .core import util
 from .core import exceptions
 
-__all__ = [
-    'Fastrs',
-    'preprocessor',
-    'scatter', 
-    'util',
-    'exceptions'
-]
+__all__ = ["Fastrs", "preprocessor", "scatter", "util", "exceptions"]
 
-__version__ = '0.1.0'
+__version__ = "0.1.0"
