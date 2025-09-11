@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fastrs"
+name = "simars"
 version = "0.1.0"
 description = "FastText-based response similarity analyzer for human raters"
 readme = "README.md"

@@ -1,6 +1,6 @@
-# FastRS - FastText-based Response Similarity Analyzer
+# Simars - FastText-based similarity analysis of answers & responses for human raters
 
-FastRS is a comprehensive toolkit for analyzing response similarity using FastText embeddings, specifically designed to support human raters in educational assessment and text analysis tasks.
+Simars is a comprehensive toolkit for analyzing response similarity using FastText embeddings, specifically designed to support human raters in educational assessment and text analysis tasks.
 
 ## 🚀 Features
 
@@ -14,7 +14,7 @@ FastRS is a comprehensive toolkit for analyzing response similarity using FastTe
 ## 📦 Installation
 
 ```bash
-pip install fastrs
+pip install simars
 
 # Install spaCy English model (required for text processing)
 python -m spacy download en_core_web_sm
@@ -23,8 +23,8 @@ python -m spacy download en_core_web_sm
 ### Development Installation
 
 ```bash
-git clone https://github.com/h000000nkim/fastrs.git
-cd fastrs
+git clone https://github.com/h000000nkim/simars.git
+cd simars
 pip install -e ".[dev]"
 ```
 
@@ -41,7 +41,7 @@ pip install -e ".[dev]"
 ### Basic Usage
 
 ```python
-import fastrs
+import simars
 import numpy as np
 
 # Sample data
@@ -57,8 +57,8 @@ informations = np.array([
     "문법 성분 분석"
 ])
 
-# Initialize FastRS
-analyzer = fastrs.Fastrs(
+# Initialize Simars
+analyzer = simars.Fastrs(
     answers=answers,
     responses=responses,
     informations=informations
@@ -104,11 +104,11 @@ data = {
     }
 }
 
-analyzer = fastrs.Fastrs(data=data)
+analyzer = simars.Fastrs(data=data)
 analyzer.preprocess()
 
 # Fine-tune existing model
-pretrained_model = fastrs.util.get_pretrained_model()
+pretrained_model = simars.util.get_pretrained_model()
 analyzer.finetune(model=pretrained_model, epochs=5)
 
 # Advanced reduction with custom parameters
@@ -175,7 +175,7 @@ Color-coded visualization based on clustering results.
 
 ## ⚙️ Configuration
 
-FastRS uses JSON configuration files for customization:
+simars uses JSON configuration files for customization:
 
 - `color_schemes.json`: Color themes for visualizations
 - `plot_config.json`: Plot layout and styling options
@@ -197,7 +197,7 @@ pytest tests/unit/
 pytest tests/integration/
 
 # With coverage
-pytest --cov=fastrs tests/
+pytest --cov=simars tests/
 ```
 
 ## 📚 Use Cases
@@ -225,9 +225,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [GitHub Repository](https://github.com/h000000nkim/fastrs)
-- [Documentation](https://h000000nkim.github.io/fastrs/)
-- [PyPI Package](https://pypi.org/project/fastrs/)
+- [GitHub Repository](https://github.com/h000000nkim/simars)
+- [Documentation](https://h000000nkim.github.io/simars/)
+- [PyPI Package](https://pypi.org/project/simars/)
 
 ## 📈 Roadmap
 
