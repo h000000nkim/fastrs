@@ -1,0 +1,15 @@
+{
+  "template": "plotly_white",
+  "width": 900,
+  "height": 700,
+  "marker_size": 8,
+  "marker_opacity": {
+    "normal": 0.8,
+    "faded": 0.3
+  },
+  "grid_lines": {
+    "color": "#E0E0E0",
+    "dash": "dot",
+    "opacity": 0.7
+  }
+}

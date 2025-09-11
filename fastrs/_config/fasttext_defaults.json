@@ -1,0 +1,50 @@
+{
+  "default": {
+    "vector_size": 1000,
+    "window": 5,
+    "min_count": 5,
+    "workers": 4,
+    "sg": 0,
+    "hs": 0,
+    "negative": 10,
+    "ns_exponent": 0.75,
+    "cbow_mean": 1,
+    "alpha": 0.025,
+    "min_alpha": 0.0001,
+    "seed": 42,
+    "max_vocab_size": null,
+    "max_final_vocab": null,
+    "sample": 0.001,
+    "min_n": 3,
+    "max_n": 6,
+    "sorted_vocab": 1,
+    "bucket": 2000000,
+    "trim_rule": null,
+    "batch_words": 10000,
+    "epochs": 5
+  },
+  "fast_training": {
+    "vector_size": 100,
+    "window": 3,
+    "min_count": 3,
+    "workers": 4,
+    "sg": 0,
+    "epochs": 3,
+    "alpha": 0.05,
+    "min_n": 2,
+    "max_n": 4
+  },
+  "high_quality": {
+    "vector_size": 300,
+    "window": 10,
+    "min_count": 2,
+    "workers": 4,
+    "sg": 1,
+    "epochs": 10,
+    "alpha": 0.01,
+    "min_alpha": 0.00001,
+    "min_n": 3,
+    "max_n": 6,
+    "negative": 20
+  }
+}

@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include fastrs/_config/*.json
+include wheelhouse/*.whl
+recursive-include fastrs *.py
+recursive-include tests *.py
+global-exclude __pycache__
+global-exclude *.py[co]

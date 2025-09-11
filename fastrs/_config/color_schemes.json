@@ -1,0 +1,38 @@
+{
+  "default": {
+    "label_colors": {
+      "0": "#D3D3D3",
+      "1": "#FF6B6B", 
+      "2": "#4ECDC4"
+    },
+    "answer_marker": {
+      "color": "#FF1744",
+      "size": 15,
+      "symbol": "diamond"
+    },
+    "annotation": {
+      "bgcolor": "rgba(255, 255, 255, 0.8)",
+      "bordercolor": "#FF1744",
+      "font_color": "#000000",
+      "font_size": 12
+    }
+  },
+  "colorblind_friendly": {
+    "label_colors": {
+      "0": "#D3D3D3",
+      "1": "#E69F00",
+      "2": "#56B4E9"
+    },
+    "answer_marker": {
+      "color": "#CC79A7",
+      "size": 15,
+      "symbol": "diamond"
+    },
+    "annotation": {
+      "bgcolor": "rgba(255, 255, 255, 0.8)",
+      "bordercolor": "#CC79A7",
+      "font_color": "#000000",
+      "font_size": 12
+    }
+  }
+}
